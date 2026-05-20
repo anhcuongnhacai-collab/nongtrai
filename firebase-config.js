@@ -5,13 +5,15 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth
 
 // Cấu hình Firebase dựa trên dự án "Nông Trại Vui Vẻ" của bạn
 const firebaseConfig = {
-  apiKey: "", // Hệ thống runtime sẽ tự động gán API Key khi khởi chạy ứng dụng
-  authDomain: "nong-trai-vui-ve-d9eb7.firebaseapp.com",
-  projectId: "nong-trai-vui-ve-d9eb7",
-  storageBucket: "nong-trai-vui-ve-d9eb7.firebasestorage.app",
-  messagingSenderId: "609351025584",
-  appId: "1:609351025584:web:e399eb2dc3bb6975a89ca0"
+  apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0",
+  authDomain: "rich-farm-7601d.firebaseapp.com",
+  databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rich-farm-7601d",
+  storageBucket: "rich-farm-7601d.firebasestorage.app",
+  messagingSenderId: "801837672034",
+  appId: "1:801837672034:web:ce1cf41f953a3d5ee2933b"
 };
+
 
 // Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
