@@ -46,27 +46,7 @@
     }
 
     // --- GAME CONFIGURATION ---
-    const SEEDS = {
-      rice: { id: 'rice', name: 'Lúa', cost: 5000, profit: 8000, icon: '🌾' },
-      carrot: { id: 'carrot', name: 'Cà rốt', cost: 10000, profit: 15000, icon: '🥕' },
-      sweet_potato: { id: 'sweet_potato', name: 'Khoai lang', cost: 15000, profit: 21000, icon: '🍠' },
-      watermelon: { id: 'watermelon', name: 'Dưa hấu', cost: 20000, profit: 30000, icon: '🍉' }
-    };
-
-    const ANIMALS = {
-      chicken: { id: 'chicken', name: 'Gà', cost: 50000, incomePerHour: 3000, icon: '🐔' },
-      pig: { id: 'pig', name: 'Lợn', cost: 100000, incomePerHour: 5000, icon: '🐷' },
-      cow: { id: 'cow', name: 'Bò', cost: 200000, incomePerHour: 10000, icon: '🐮' }
-    };
-
-    const LAND_UPGRADES = [
-      { level: 0, cost: 0, harvestTimeHours: 24, bonusPercent: 0 },
-      { level: 1, cost: 100000, harvestTimeHours: 23, bonusPercent: 3 },
-      { level: 2, cost: 200000, harvestTimeHours: 21, bonusPercent: 5 },
-      { level: 3, cost: 300000, harvestTimeHours: 19, bonusPercent: 8 },
-      { level: 4, cost: 500000, harvestTimeHours: 17, bonusPercent: 10 },
-    ];
-
+    const SEEDS={'rice':{'id':'rice','name':'Lúa','cost':0x1388,'profit':0x1f40,'icon':'🌾'},'carrot':{'id':'carrot','name':'Cà\x20rốt','cost':0x2710,'profit':0x3a98,'icon':'🥕'},'sweet_potato':{'id':'sweet_potato','name':'Khoai\x20lang','cost':0x3a98,'profit':0x5208,'icon':'🍠'},'watermelon':{'id':'watermelon','name':'Dưa\x20hấu','cost':0x4e20,'profit':0x7530,'icon':'🍉'}},ANIMALS={'chicken':{'id':'chicken','name':'Gà','cost':0xc350,'incomePerHour':0xbb8,'icon':'🐔'},'pig':{'id':'pig','name':'Lợn','cost':0x186a0,'incomePerHour':0x1388,'icon':'🐷'},'cow':{'id':'cow','name':'Bò','cost':0x30d40,'incomePerHour':0x2710,'icon':'🐮'}},LAND_UPGRADES=[{'level':0x0,'cost':0x0,'harvestTimeHours':0x18,'bonusPercent':0x0},{'level':0x1,'cost':0x186a0,'harvestTimeHours':0x17,'bonusPercent':0x3},{'level':0x2,'cost':0x30d40,'harvestTimeHours':0x15,'bonusPercent':0x5},{'level':0x3,'cost':0x493e0,'harvestTimeHours':0x13,'bonusPercent':0x8},{'level':0x4,'cost':0x7a120,'harvestTimeHours':0x11,'bonusPercent':0xa}];globalThis['SEEDS']=SEEDS;globalThis['ANIMALS']=ANIMALS;globalThis['LAND_UPGRADES']=LAND_UPGRADES;
     const REF_BONUS = { 1: 20000, 2: 50000, 3: 70000, 4: 100000 };
     const PLOT_UNLOCK_COST = 5000;
     const WATER_BUCKET_COST = 3000;

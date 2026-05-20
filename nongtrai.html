@@ -43,8 +43,1221 @@
 </head>
 <body class="bg-gray-100">
   <div id="root"></div>
+<script type="text/babel">
+  
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+});
 
+document.addEventListener('keydown', (e) => {
+  
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
 
-  <script src="baomat.min.js"></script> 
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
+        e.preventDefault();
+        return false;
+    }
+
+    
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+        return false;
+    }
+    
+    if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+setInterval(() => {
+    console.clear();
+}, 100);
+   const { useState, useEffect, useRef } = React;
+
+    // --- Cấu hình Firebase mới đồng bộ từ dự án rich-farm-7601d ---
+    const defaultFirebaseConfig = {
+      apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0", 
+      authDomain: "rich-farm-7601d.firebaseapp.com",
+      projectId: "rich-farm-7601d",
+      storageBucket: "rich-farm-7601d.firebasestorage.app",
+      messagingSenderId: "801837672034",
+      appId: "1:801837672034:web:19a5044501d75df0e2933b",
+      databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    // Đọc cấu hình tự động từ môi trường Canvas nếu tồn tại, nếu không dùng mặc định
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+      ? JSON.parse(__firebase_config) 
+      : defaultFirebaseConfig;
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
+
+    // --- CUSTOM SVG ICONS ---
+    function Icon({ name, size = 20, className = "" }) {
+      const icons = {
+        home: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+        shoppingCart: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></svg>,
+        users: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+        user: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+        logOut: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>,
+        sprout: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22v-4" /><path d="M12 18H8a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2h8a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4h-4" /><path d="M12 10a4 4 0 0 1 4-4h4" /></svg>,
+        droplets: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.09 3 12.25c0 2.22 1.8 4.05 4 4.05z" /><path d="M17 18.5c1.37 0 2.5-1.14 2.5-2.53 0-.72-.35-1.41-1.07-1.99s-1.42-1.42-1.6-2.33c-.18.91-.71 1.77-1.43 2.35s-1.07 1.27-1.07 1.99c0 1.39 1.13 2.52 2.5 2.52z" /></svg>,
+        shovel: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 22v-5l5-5 5 5-5 5z" /><path d="M9.5 14.5 16 8" /><path d="m17 2 5 5-.5.5a3.53 3.53 0 0 1-5 0l-1.5-1.5a3.53 3.53 0 0 1 0-5z" /></svg>,
+        lock: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+        unlock: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" /></svg>,
+        coins: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="8" cy="8" r="6" /><circle cx="18" cy="18" r="4" /><path d="M12 18a6 6 0 0 0-6-6M18 6a10 10 0 0 1-10 10" /></svg>,
+        history: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><polyline points="3 3 3 8 8 8" /><line x1="12" x2="12" y1="7" y2="12" /><line x1="12" x2="16" y1="12" y2="14" /></svg>,
+        landmark: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" x2="21" y1="22" y2="22" /><line x1="6" x2="6" y1="18" y2="11" /><line x1="10" x2="10" y1="18" y2="11" /><line x1="14" x2="14" y1="18" y2="11" /><line x1="18" x2="18" y1="18" y2="11" /><path d="m12 2-9 4v3h18V6z" /></svg>,
+        send: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" x2="11" y1="2" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
+        alertCircle: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>,
+        plusCircle: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="16" /><line x1="8" x2="16" y1="12" y2="12" /></svg>,
+        creditCard: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg>,
+        helpCircle: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" x2="12.01" y1="17" y2="17" /></svg>,
+        trendingUp: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
+        trendingDown: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" /></svg>
+      };
+      return icons[name] || null;
+    }
+
+    // --- GAME CONFIGURATION ---
+    const SEEDS={'rice':{'id':'rice','name':'Lúa','cost':0x1388,'profit':0x1f40,'icon':'🌾'},'carrot':{'id':'carrot','name':'Cà\x20rốt','cost':0x2710,'profit':0x3a98,'icon':'🥕'},'sweet_potato':{'id':'sweet_potato','name':'Khoai\x20lang','cost':0x3a98,'profit':0x5208,'icon':'🍠'},'watermelon':{'id':'watermelon','name':'Dưa\x20hấu','cost':0x4e20,'profit':0x7530,'icon':'🍉'}},ANIMALS={'chicken':{'id':'chicken','name':'Gà','cost':0xc350,'incomePerHour':0xbb8,'icon':'🐔'},'pig':{'id':'pig','name':'Lợn','cost':0x186a0,'incomePerHour':0x1388,'icon':'🐷'},'cow':{'id':'cow','name':'Bò','cost':0x30d40,'incomePerHour':0x2710,'icon':'🐮'}},LAND_UPGRADES=[{'level':0x0,'cost':0x0,'harvestTimeHours':0x18,'bonusPercent':0x0},{'level':0x1,'cost':0x186a0,'harvestTimeHours':0x17,'bonusPercent':0x3},{'level':0x2,'cost':0x30d40,'harvestTimeHours':0x15,'bonusPercent':0x5},{'level':0x3,'cost':0x493e0,'harvestTimeHours':0x13,'bonusPercent':0x8},{'level':0x4,'cost':0x7a120,'harvestTimeHours':0x11,'bonusPercent':0xa}];globalThis['SEEDS']=SEEDS;globalThis['ANIMALS']=ANIMALS;globalThis['LAND_UPGRADES']=LAND_UPGRADES;
+    const REF_BONUS = { 1: 20000, 2: 50000, 3: 70000, 4: 100000 };
+    const PLOT_UNLOCK_COST = 5000;
+    const WATER_BUCKET_COST = 3000;
+
+    const VN_BANKS = ["Vietcombank", "MBBank", "Techcombank", "BIDV", "Agribank", "VietinBank", "VPBank", "ACB", "TPBank"].sort();
+
+    // --- CSS CLASSES ---
+    const cartoonBox = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] bg-white transition-transform duration-150";
+    const cartoonBtn = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] font-bold active:translate-y-1 active:translate-x-1 active:shadow-[0_0_0_0_#000] transition-all";
+    const cartoonInput = "border-[3px] border-black rounded-xl p-3 w-full outline-none focus:ring-4 focus:ring-yellow-300 font-medium";
+
+    function App() {
+      // States
+      const [view, setView] = useState('login'); 
+      const [activeTab, setActiveTab] = useState('farm');
+      const [msgBox, setMsgBox] = useState(null);
+      
+      const [user, setUser] = useState(null);
+      const [balance, setBalance] = useState(0);
+      const [bankLinked, setBankLinked] = useState(false);
+      const [bankInfo, setBankInfo] = useState({ bankName: 'Vietcombank', fullName: '', accNo: '' });
+      const [transactions, setTransactions] = useState([]);
+      
+      const [depositAmount, setDepositAmount] = useState('');
+      const [withdrawAmount, setWithdrawAmount] = useState('');
+      const [tempBankInfo, setTempBankInfo] = useState({ bankName: 'Vietcombank', fullName: '', accNo: '' });
+
+      const [authData, setAuthData] = useState({ username: '', password: '', confirm: '', phone: '', referralInput: '', captchaInput: '' });
+      const [forgotData, setForgotData] = useState({ username: '', phone: '', newPass: '', confirmPass: '', step: 1 });
+      const [captchaCode, setCaptchaCode] = useState('');
+      
+      const [landLevel, setLandLevel] = useState(0);
+      const [plots, setPlots] = useState([]);
+      const [pens, setPens] = useState([]);
+      
+      const [selectedTool, setSelectedTool] = useState(null);
+      const [currentTime, setCurrentTime] = useState(Date.now());
+      const [modal, setModal] = useState({ show: false, type: '', data: null });
+      
+      const [downlineStats, setDownlineStats] = useState({ total: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 });
+
+      // Firebase Services Refs
+      const [db, setDb] = useState(null);
+      const [firebaseUser, setFirebaseUser] = useState(null);
+      const [firebaseError, setFirebaseError] = useState(null); 
+
+      const triggerAlert = (message, title = "Thông Báo 📢") => setMsgBox({ message, title });
+      const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
+
+      // --- Khởi tạo Firebase Tối ưu, Sửa lỗi iFrame & Vercel Session ---
+      useEffect(() => {
+        let unsubscribeAuth;
+        const initFirebase = async () => {
+          try {
+            const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } = window.FirebaseLib;
+            
+            // Khởi tạo App và tránh lỗi cấu hình trùng lặp
+            let app;
+            try {
+              app = initializeApp(firebaseConfig);
+            } catch (e) {
+              // App đã khởi tạo trước đó
+            }
+            const firestoreDb = getFirestore(app);
+            const auth = getAuth(app);
+            setDb(firestoreDb);
+
+            // THIẾT LẬP CƠ CHẾ PERSISTENCE TRONG BỘ NHỚ TẠM (SỬA LỖI TREO KẾT NỐI TRÊN VERCEL / IFRAME)
+            try {
+              await setPersistence(auth, browserSessionPersistence);
+            } catch (persistError) {
+              console.warn("Không thể thiết lập bộ nhớ tạm: ", persistError);
+            }
+
+            // Đăng nhập ẩn danh bảo mật
+            try {
+              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+              } else {
+                await signInAnonymously(auth);
+              }
+            } catch (authError) {
+              console.error("Lỗi xác thực chi tiết: ", authError);
+              setFirebaseError(authError.code || authError.message);
+              triggerAlert(
+                `Lỗi kết nối Firebase: ${authError.code}. Vui lòng kiểm tra lại cấu hình Authorized Domains trên Firebase Console hoặc kết nối mạng!`, 
+                "Lỗi Kết Nối ⚠️"
+              );
+            }
+
+            // Lắng nghe trạng thái đăng nhập liên tục
+            unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+              if (authUser) {
+                setFirebaseUser(authUser);
+              }
+            });
+          } catch (error) {
+            console.error("Lỗi khởi tạo Firebase: ", error);
+          }
+        };
+
+        if (window.FirebaseLib) {
+          initFirebase();
+        } else {
+          const checkLib = setInterval(() => {
+            if (window.FirebaseLib) {
+              initFirebase();
+              clearInterval(checkLib);
+            }
+          }, 300);
+          return () => {
+            clearInterval(checkLib);
+            if (unsubscribeAuth) unsubscribeAuth();
+          };
+        }
+
+        return () => {
+          if (unsubscribeAuth) unsubscribeAuth();
+        };
+      }, []);
+
+      // --- Helper copy text ---
+      const handleCopy = (text, label) => {
+        const el = document.createElement('textarea'); 
+        el.value = text; 
+        document.body.appendChild(el); 
+        el.select(); 
+        document.execCommand('copy'); 
+        document.body.removeChild(el);
+        triggerAlert(`Đã sao chép ${label}!`, "Thành Công");
+      };
+
+      const handleMoneyInputChange = (e, setter) => {
+        let rawValue = e.target.value.replace(/\D/g, ''); 
+        if (!rawValue) {
+          setter('');
+          return;
+        }
+        let formattedValue = parseInt(rawValue).toLocaleString('en-US'); 
+        setter(formattedValue);
+      };
+
+      const isAccountActivated = () => {
+        if (!user) return false;
+        if (landLevel >= 1) return true;
+        const hasSuccessDeposit = transactions.some(t => t.type === 'Nạp tiền' && t.status === 'Thành công');
+        return hasSuccessDeposit;
+      };
+
+      const getTotalStats = () => {
+        let totalDeposit = 0;
+        let totalWithdraw = 0;
+        transactions.forEach(tx => {
+          if (tx.status === 'Thành công') {
+            if (tx.type === 'Nạp tiền') totalDeposit += tx.amount;
+            if (tx.type === 'Rút tiền') totalWithdraw += tx.amount;
+          }
+        });
+        return { totalDeposit, totalWithdraw };
+      };
+
+      // Tự động lấy tham số referral từ URL
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get('ref');
+        if (ref) {
+          setView('register');
+          setAuthData(prev => ({ ...prev, referralInput: ref }));
+        }
+      }, []);
+
+      // --- ĐỒNG BỘ REALTIME TỪ FIREBASE KHI ĐÃ ĐĂNG NHẬP ---
+      useEffect(() => {
+        if (!db || !user || !user.username || !firebaseUser || view !== 'game') return;
+
+        const { doc, onSnapshot } = window.FirebaseLib;
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
+
+        const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUser(data);
+            setBalance(data.balance || 0);
+            setLandLevel(data.landLevel || 0);
+            setTransactions(data.transactions || []);
+            setBankLinked(data.bankLinked || false);
+            setBankInfo(data.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
+            if (data.plots) setPlots(data.plots);
+            if (data.pens) setPens(data.pens);
+          }
+        }, (error) => {
+          console.error("Lỗi đồng bộ Realtime: ", error);
+        });
+
+        return () => unsubscribe();
+      }, [db, user?.username, firebaseUser, view]);
+
+      // Timer & Chốt hoa hồng định kỳ hàng ngày
+      useEffect(() => {
+        let timer;
+        if (view === 'game' && user && user.username && db && firebaseUser) {
+          timer = setInterval(async () => {
+            const now = Date.now();
+            setCurrentTime(now);
+
+            const todayStr = new Date().toLocaleDateString('vi-VN');
+            if (user.lastCommissionDate !== todayStr) {
+              const { doc, updateDoc } = window.FirebaseLib;
+              const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
+
+              let updatedBalance = balance;
+              let updatedTxs = [...transactions];
+
+              if (user.pendingCommission > 0) {
+                updatedBalance += user.pendingCommission;
+                updatedTxs = [{
+                  type: 'Nhận hoa hồng ngày',
+                  amount: user.pendingCommission,
+                  desc: 'Hoa hồng 15% từ thu nhập của cấp dưới',
+                  status: 'Thành công',
+                  time: new Date().toISOString()
+                }, ...updatedTxs];
+
+                triggerAlert(`Bạn đã nhận được ${formatMoney(user.pendingCommission)} hoa hồng từ cấp dưới ngày hôm qua!`, "Hoa Hồng Hàng Ngày 💸");
+              }
+
+              await updateDoc(userDocRef, {
+                balance: updatedBalance,
+                transactions: updatedTxs,
+                pendingCommission: 0,
+                lastCommissionDate: todayStr
+              });
+            }
+          }, 1000);
+        }
+        return () => { if (timer) clearInterval(timer); };
+      }, [view, user, balance, transactions, db, firebaseUser]);
+
+      // Tạo Captcha ngẫu nhiên
+      useEffect(() => {
+        if (view === 'register') setCaptchaCode(Math.floor(1000 + Math.random() * 9000).toString());
+      }, [view]);
+
+      // Thống kê cấp dưới trực tiếp realtime
+      useEffect(() => {
+        if (activeTab === 'referral' && user && db && firebaseUser) {
+          const { collection, onSnapshot } = window.FirebaseLib;
+          const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+
+          const unsubscribe = onSnapshot(usersColl, (querySnapshot) => {
+            let downlines = [];
+            querySnapshot.forEach((doc) => {
+              const uData = doc.data();
+              if (uData.referrer === user.referralCode) {
+                downlines.push(uData);
+              }
+            });
+
+            let stats = { total: downlines.length, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+            downlines.forEach(d => { if (stats[d.landLevel] !== undefined) stats[d.landLevel]++; });
+            setDownlineStats(stats);
+          }, (error) => {
+            console.error("Lỗi đồng bộ tuyến dưới: ", error);
+          });
+
+          return () => unsubscribe();
+        }
+      }, [activeTab, user, db, firebaseUser]);
+
+      const loadUserData = (userData) => {
+        setUser(userData);
+        setBalance(userData.balance || 0);
+        setLandLevel(userData.landLevel || 0);
+        setTransactions(userData.transactions || []);
+        setBankLinked(userData.bankLinked || false);
+        setBankInfo(userData.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
+        
+        if (userData.plots && userData.plots.length > 0) setPlots(userData.plots);
+        else setPlots(Array.from({ length: 20 }, (_, i) => ({ id: i, unlocked: i < 12, plantedSeed: null, plantTime: null, watered: false, isDry: false })));
+        
+        if (userData.pens && userData.pens.length > 0) setPens(userData.pens);
+        else setPens(Array.from({ length: 4 }, (_, i) => ({ id: i, animal: null, buyTime: null, lastCollectTime: null })));
+      };
+
+      const handleAuth = async (type) => {
+        if (firebaseError) return triggerAlert(`Lỗi kết nối Firebase: ${firebaseError}. Hãy cấu hình Authorized Domain trên Firebase Console!`, "Lỗi Firebase");
+        if (!db || !firebaseUser) return triggerAlert("Hệ thống đang thiết lập kết nối mã hóa, vui lòng đợi thêm 2-3 giây rồi bấm lại!", "Đang Kết Nối ⏳");
+
+        if (type === 'login') {
+          if (!authData.username || !authData.password) return triggerAlert("Vui lòng nhập đầy đủ Tên tài khoản và Mật khẩu!");
+        } else {
+          if (!authData.username || !authData.password || !authData.phone) return triggerAlert("Vui lòng nhập đầy đủ thông tin!");
+        }
+
+        const usernameClean = authData.username.trim();
+        if (!usernameClean) return triggerAlert("Tên tài khoản không hợp lệ!");
+
+        const { doc, getDoc, setDoc } = window.FirebaseLib;
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', usernameClean);
+
+        if (type === 'login') {
+          const docSnap = await getDoc(userDocRef);
+          if (!docSnap.exists()) return triggerAlert("Tài khoản không tồn tại!");
+          
+          const u = docSnap.data();
+          if (u.password !== authData.password) return triggerAlert("Mật khẩu không chính xác!");
+          if (u.isBanned) return triggerAlert("Tài khoản này đã bị KHÓA vĩnh viễn do vi phạm chính sách đăng ký nhiều tài khoản trên một thiết bị!", "Tài Khoản Bị Khóa ⛔");
+          
+          loadUserData(u);
+          setView('game');
+        } else {
+          // Register
+          if (authData.phone.length !== 10 || !/^\d+$/.test(authData.phone)) return triggerAlert("Số điện thoại phải bao gồm đúng 10 chữ số!");
+          if (authData.password !== authData.confirm) return triggerAlert("Mật khẩu nhập lại không trùng khớp!");
+          if (authData.captchaInput !== captchaCode) {
+             setCaptchaCode(Math.floor(1000 + Math.random() * 9000).toString());
+             return triggerAlert("Mã xác nhận Captcha không đúng!");
+          }
+
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) return triggerAlert("Tên tài khoản này đã tồn tại!");
+
+          // Chống trùng lặp thiết bị
+          const systemDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'devices');
+          const systemSnap = await getDoc(systemDocRef);
+          
+          let firstUserOnDevice = null;
+          let localDevId = localStorage.getItem('nongtrai_device_fingerprint');
+          if (!localDevId) {
+            localDevId = 'DEV-' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('nongtrai_device_fingerprint', localDevId);
+          }
+
+          let isBanned = false;
+          let devicesData = {};
+          if (systemSnap.exists()) {
+            devicesData = systemSnap.data() || {};
+            if (devicesData[localDevId]) {
+              firstUserOnDevice = devicesData[localDevId];
+              if (firstUserOnDevice !== authData.username) {
+                isBanned = true; 
+              }
+            } else {
+              devicesData[localDevId] = authData.username;
+              await setDoc(systemDocRef, devicesData);
+            }
+          } else {
+            devicesData[localDevId] = authData.username;
+            await setDoc(systemDocRef, devicesData);
+          }
+
+          const defaultPlots = Array.from({ length: 20 }, (_, i) => ({ id: i, unlocked: i < 12, plantedSeed: null, plantTime: null, watered: false, isDry: false }));
+          const defaultPens = Array.from({ length: 4 }, (_, i) => ({ id: i, animal: null, buyTime: null, lastCollectTime: null }));
+
+          const newUser = {
+            username: usernameClean,
+            password: authData.password,
+            phone: authData.phone,
+            referralCode: `FARM${Math.floor(Math.random() * 90000) + 10000}`,
+            referrer: authData.referralInput || null,
+            isBanned: isBanned,
+            balance: 50000,
+            landLevel: 0,
+            pendingCommission: 0,
+            lastCommissionDate: new Date().toLocaleDateString('vi-VN'),
+            plots: defaultPlots,
+            pens: defaultPens,
+            bankLinked: false,
+            bankInfo: { bankName: 'Vietcombank', fullName: '', accNo: '' },
+            transactions: [{ type: 'Thưởng', amount: 50000, desc: 'Vốn khởi nghiệp tân thủ', status: 'Thành công', time: new Date().toISOString() }]
+          };
+
+          await setDoc(userDocRef, newUser);
+
+          if (isBanned) {
+            triggerAlert("Hệ thống phát hiện thiết bị này đã tạo tài khoản trước đó. Tài khoản mới tạo đã bị khóa để tránh trục lợi!", "Cảnh Báo ⛔");
+          } else {
+            triggerAlert("Đăng ký thành công! Bạn nhận được 50,000đ vốn khởi nghiệp.", "Thành Công 🎉");
+            loadUserData(newUser);
+            setView('game');
+          }
+        }
+      };
+
+      const handleForgotPass = async () => {
+        if (!db || !firebaseUser) return;
+
+        const usernameClean = forgotData.username ? forgotData.username.trim() : "";
+        if (!usernameClean) return triggerAlert("Vui lòng nhập Tên tài khoản!");
+
+        const { doc, getDoc, updateDoc } = window.FirebaseLib;
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', usernameClean);
+
+        if (forgotData.step === 1) {
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists() && docSnap.data().phone === forgotData.phone) {
+            setForgotData({...forgotData, step: 2});
+          } else {
+            triggerAlert("Tên tài khoản hoặc số điện thoại đăng ký không trùng khớp!");
+          }
+        } else {
+          if (!forgotData.newPass || forgotData.newPass !== forgotData.confirmPass) return triggerAlert("Mật khẩu mới không trùng khớp!");
+          await updateDoc(userDocRef, { password: forgotData.newPass });
+          triggerAlert("Đổi mật khẩu thành công! Hãy đăng nhập bằng mật khẩu mới.");
+          setView('login');
+        }
+      };
+
+      // Đồng bộ ví trực tiếp lên Firebase Firestore
+      const updateFirebaseState = async (updates) => {
+        if (!db || !user || !user.username || !firebaseUser) return;
+        const { doc, updateDoc } = window.FirebaseLib;
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
+        await updateDoc(userDocRef, updates);
+      };
+
+      const handleRequestDeposit = async (amount) => {
+        const newTx = {
+          id: "DEP_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+          type: 'Nạp tiền',
+          amount: amount,
+          desc: 'Nạp tiền qua ngân hàng (BIDV)',
+          status: 'Đang xử lý',
+          time: new Date().toISOString()
+        };
+        const updatedTxs = [newTx, ...transactions];
+        await updateFirebaseState({ transactions: updatedTxs });
+        setDepositAmount('');
+        setModal({ show: false, type: '', data: null });
+        triggerAlert("Lệnh nạp tiền đã được gửi! Vui lòng chờ Admin kiểm tra và duyệt đơn.", "Đang Xử Lý ⏳");
+      };
+
+      const handleRequestWithdraw = async (data) => {
+        const newTx = {
+          id: "WIT_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+          type: 'Rút tiền',
+          amount: data.amount,
+          fee: data.fee,
+          realReceive: data.realReceive,
+          desc: `Rút tiền về ngân hàng ${bankInfo.bankName} - Số TK: ${bankInfo.accNo}`,
+          status: 'Đang xử lý',
+          time: new Date().toISOString()
+        };
+        const updatedTxs = [newTx, ...transactions];
+        await updateFirebaseState({
+          balance: balance - data.amount,
+          transactions: updatedTxs
+        });
+        setWithdrawAmount('');
+        setModal({ show: false, type: '', data: null });
+        triggerAlert("Yêu cầu rút tiền thành công! Đơn hàng đang ở trạng thái 'Đang xử lý'. Số dư khả dụng của bạn đã tạm trừ.", "Đã Gửi Yêu Cầu ⏳");
+      };
+
+      const processCommission = async (profit) => {
+        if (landLevel < 1 || !user.referrer || !db || !firebaseUser) return;
+        
+        const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
+        const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+        const querySnap = await getDocs(usersColl);
+
+        let referrerDocId = null;
+        let referrerData = null;
+
+        querySnap.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.referralCode === user.referrer) {
+            referrerDocId = docSnap.id;
+            referrerData = d;
+          }
+        });
+
+        if (referrerDocId && referrerData) {
+          const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
+          const bonusComm = Math.floor(profit * 0.15);
+          await updateDoc(referrerRef, {
+            pendingCommission: (referrerData.pendingCommission || 0) + bonusComm
+          });
+        }
+      };
+
+      const handlePlotClick = async (plot) => {
+        if (!plot.unlocked) {
+          if (balance >= PLOT_UNLOCK_COST) setModal({ show: true, type: 'unlock_plot', data: plot });
+          else triggerAlert("Không đủ tiền mở khóa ô đất!");
+          return;
+        }
+
+        if (selectedTool === 'shovel' && plot.plantedSeed) {
+          setModal({ show: true, type: 'shovel_confirm', data: plot });
+          return;
+        }
+
+        if (selectedTool && selectedTool.type === 'seed' && !plot.plantedSeed) {
+          if (selectedTool.id === 'watermelon' && !isAccountActivated()) {
+             return triggerAlert("Bạn không thể dùng vốn khởi nghiệp để mua Hạt dưa hấu! Vui lòng thực hiện bất kỳ giao dịch nạp tiền nào được duyệt hoặc nâng đất lên Cấp 1 để kích hoạt tài khoản.", "Tài Khoản Chưa Kích Hoạt 🔒");
+          }
+
+          if (plot.isDry) return triggerAlert("Đất đang bị khô cằn! Bạn cần mua xô nước để tưới toàn bộ đất trước.", "Đất Khô 🏜️");
+          if (balance >= selectedTool.cost) {
+            const nextPlots = plots.map(p => p.id === plot.id ? { ...p, plantedSeed: selectedTool, plantTime: currentTime, watered: false } : p);
+            await updateFirebaseState({
+              balance: balance - selectedTool.cost,
+              plots: nextPlots
+            });
+            setSelectedTool(null);
+          } else triggerAlert("Không đủ tiền mua hạt giống này!");
+          return;
+        }
+
+        if (plot.plantedSeed) {
+          const requiredTimeMs = LAND_UPGRADES[landLevel].harvestTimeHours * 60 * 60 * 1000;
+          if ((currentTime - plot.plantTime) >= requiredTimeMs) {
+            const totalProfit = plot.plantedSeed.profit + (plot.plantedSeed.profit * (LAND_UPGRADES[landLevel].bonusPercent / 100));
+            const nextPlots = plots.map(p => p.id === plot.id ? { ...p, plantedSeed: null, plantTime: null, watered: false, isDry: true } : p);
+            
+            await updateFirebaseState({
+              balance: balance + totalProfit,
+              plots: nextPlots
+            });
+            processCommission(totalProfit); 
+          } else {
+            const minutesLeft = Math.max(0, Math.ceil((requiredTimeMs - (currentTime - plot.plantTime)) / 60000));
+            triggerAlert(`Cây chưa chín! Còn khoảng ${minutesLeft} phút nữa mới có thể thu hoạch.`);
+          }
+        }
+      };
+
+      const collectAnimalIncome = async (pen) => {
+        if(!pen.animal) return;
+        const hoursPassed = (currentTime - pen.lastCollectTime) / (1000 * 60 * 60);
+        const income = Math.floor(hoursPassed * pen.animal.incomePerHour);
+        if (income > 0) {
+          const nextPens = pens.map(p => p.id === pen.id ? { ...p, lastCollectTime: currentTime } : p);
+          await updateFirebaseState({
+            balance: balance + income,
+            pens: nextPens
+          });
+          processCommission(income);
+          triggerAlert(`Bạn đã thu hoạch và nhận về ${formatMoney(income)}!`, "Thành Công 🎉");
+        } else triggerAlert("Chưa đủ 1 giờ để thu thập sản lượng!");
+        setModal({ show: false, type: '', data: null });
+      };
+
+      const buyWater = async () => {
+        if (balance >= WATER_BUCKET_COST) {
+          const nextPlots = plots.map(p => ({ ...p, isDry: false, watered: true }));
+          await updateFirebaseState({
+            balance: balance - WATER_BUCKET_COST,
+            plots: nextPlots
+          });
+          triggerAlert("Đã tưới nước mát lành cho TOÀN BỘ trang trại!", "💦 Đã Tưới Nước");
+        } else triggerAlert("Không đủ tiền mua xô nước!");
+      };
+
+      const upgradeLand = async () => {
+        const nextLevel = LAND_UPGRADES[landLevel + 1];
+        if (!nextLevel) return;
+        if (balance >= nextLevel.cost) {
+          await updateFirebaseState({
+            balance: balance - nextLevel.cost,
+            landLevel: nextLevel.level
+          });
+
+          // Thưởng realtime cho tuyến trên trực tiếp
+          if (user.referrer && db && firebaseUser) {
+            const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
+            const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+            const querySnap = await getDocs(usersColl);
+
+            let referrerDocId = null;
+            let referrerData = null;
+
+            querySnap.forEach((docSnap) => {
+              const d = docSnap.data();
+              if (d.referralCode === user.referrer) {
+                referrerDocId = docSnap.id;
+                referrerData = d;
+              }
+            });
+
+            if (referrerDocId && referrerData && REF_BONUS[nextLevel.level]) {
+              const b = REF_BONUS[nextLevel.level];
+              const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
+              
+              await updateDoc(referrerRef, {
+                balance: referrerData.balance + b,
+                transactions: [{
+                   type: 'Thưởng giới thiệu', amount: b, desc: `Cấp dưới ${user.username} nâng cấp đất cấp ${nextLevel.level}`, status: 'Thành công', time: new Date().toISOString()
+                }, ...(referrerData.transactions || [])]
+              });
+            }
+          }
+          setModal({ show: false, type: '', data: null });
+          triggerAlert(`Đất của bạn đã được nâng cấp lên Cấp ${nextLevel.level}!`, "Nâng Cấp Đất");
+        } else triggerAlert("Không đủ tiền nâng cấp đất!");
+      };
+
+      // SCREENS
+      if (view === 'login' || view === 'register') {
+        const isLogin = view === 'login';
+        return (
+          <div className="min-h-screen bg-sky-200 flex flex-col justify-center items-center p-4">
+            {msgBox && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className={`w-full max-w-xs bg-white p-5 text-center ${cartoonBox} animate-bounce-in`}>
+                  <h4 className="text-xl font-black mb-2 text-yellow-600">{msgBox.title}</h4>
+                  <p className="font-bold text-sm text-gray-700 mb-4">{msgBox.message}</p>
+                  <button onClick={() => setMsgBox(null)} className="w-full py-2 bg-green-400 text-white text-sm font-black border-2 border-black rounded-lg active:translate-y-0.5">Đồng Ý</button>
+                </div>
+              </div>
+            )}
+            <div className="text-center mb-8 animate-bounce">
+              <h1 className="text-4xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,1)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>Nông Trại Vui Vẻ</h1>
+              <p className="font-bold text-base text-amber-950 mt-2">Đầu tư & Kiếm Tiền trực tuyến</p>
+            </div>
+            
+            <div className={`w-full max-w-sm p-6 ${cartoonBox} bg-yellow-100`}>
+              <h2 className="text-2xl font-black mb-6 text-center">{isLogin ? 'Đăng Nhập' : 'Đăng Ký'}</h2>
+              <input type="text" placeholder="Tên tài khoản" value={authData.username} onChange={(e) => setAuthData({...authData, username: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+              
+              {!isLogin && (
+                <input type="tel" placeholder="Số điện thoại (10 số)" maxLength="10" value={authData.phone} onChange={(e) => setAuthData({...authData, phone: e.target.value.replace(/\D/g, '')})} className={`mb-4 ${cartoonInput}`} />
+              )}
+              
+              <input type="password" placeholder="Mật khẩu" value={authData.password} onChange={(e) => setAuthData({...authData, password: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+              
+              {!isLogin && (
+                <>
+                  <input type="password" placeholder="Nhập lại mật khẩu" value={authData.confirm} onChange={(e) => setAuthData({...authData, confirm: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+                  <input type="text" placeholder="Mã giới thiệu (Nếu có)" value={authData.referralInput} onChange={(e) => setAuthData({...authData, referralInput: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+                  <div className="flex gap-2 mb-6">
+                    <input type="text" placeholder="Mã Captcha" value={authData.captchaInput} onChange={(e) => setAuthData({...authData, captchaInput: e.target.value})} className={`w-1/2 ${cartoonInput} !mb-0`} />
+                    <div onClick={() => setCaptchaCode(Math.floor(1000 + Math.random() * 9000).toString())} className={`w-1/2 bg-white flex items-center justify-center text-2xl font-black tracking-widest ${cartoonBox} !shadow-none border-2 select-none cursor-pointer active:bg-gray-100`}>{captchaCode}</div>
+                  </div>
+                </>
+              )}
+              
+              <button className={`w-full py-3 bg-green-400 text-xl text-white ${cartoonBtn}`} onClick={() => handleAuth(view)}>{isLogin ? 'Vào Trại' : 'Tạo Tài Khoản'}</button>
+              
+              <div className="mt-4 text-center font-bold text-sm">
+                {isLogin ? (
+                  <><p>Chưa có tài khoản? <span className="text-blue-600 cursor-pointer" onClick={() => setView('register')}>Đăng ký</span></p>
+                  <p className="mt-2 text-gray-500 cursor-pointer" onClick={() => { setView('forgot'); setForgotData({...forgotData, step: 1}); }}>Quên mật khẩu?</p></>
+                ) : <p>Đã có tài khoản? <span className="text-blue-600 cursor-pointer" onClick={() => setView('login')}>Đăng nhập</span></p>}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (view === 'forgot') return (
+        <div className="min-h-screen bg-sky-200 flex flex-col justify-center items-center p-4">
+           {msgBox && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className={`w-full max-w-xs bg-white p-5 text-center ${cartoonBox} animate-bounce-in`}>
+                  <p className="font-bold text-sm text-gray-700 mb-4">{msgBox.message}</p>
+                  <button onClick={() => setMsgBox(null)} className="w-full py-2 bg-green-400 text-white text-sm font-black border-2 border-black rounded-lg">Đồng Ý</button>
+                </div>
+              </div>
+            )}
+          <div className={`w-full max-w-sm p-6 ${cartoonBox} bg-yellow-100 text-center`}>
+            <h2 className="text-2xl font-black mb-4">Khôi phục mật khẩu</h2>
+            {forgotData.step === 1 ? (
+              <>
+                <input type="text" placeholder="Tên tài khoản" value={forgotData.username} onChange={e=>setForgotData({...forgotData, username: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+                <input type="tel" placeholder="Số điện thoại đăng ký" maxLength="10" value={forgotData.phone} onChange={e=>setForgotData({...forgotData, phone: e.target.value.replace(/\D/g, '')})} className={`mb-4 ${cartoonInput}`} />
+              </>
+            ) : (
+              <>
+                <input type="password" placeholder="Mật khẩu mới" value={forgotData.newPass} onChange={e=>setForgotData({...forgotData, newPass: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+                <input type="password" placeholder="Nhập lại mật khẩu mới" value={forgotData.confirmPass} onChange={e=>setForgotData({...forgotData, confirmPass: e.target.value})} className={`mb-4 ${cartoonInput}`} />
+              </>
+            )}
+            <button className={`w-full py-3 bg-blue-400 text-white ${cartoonBtn}`} onClick={handleForgotPass}>{forgotData.step === 1 ? 'Kiểm tra thông tin' : 'Đổi mật khẩu'}</button>
+            <p className="mt-4 font-bold cursor-pointer text-gray-600" onClick={() => setView('login')}>Quay lại</p>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen bg-green-500 pb-20 font-sans max-w-md mx-auto border-x-4 border-black relative overflow-hidden flex flex-col shadow-2xl">
+          {msgBox && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className={`w-full max-w-xs bg-white p-5 text-center ${cartoonBox} animate-bounce-in`}>
+                <h4 className="text-xl font-black mb-2 text-yellow-600">{msgBox.title}</h4>
+                <p className="font-bold text-sm text-gray-700 mb-4">{msgBox.message}</p>
+                <button onClick={() => setMsgBox(null)} className="w-full py-2 bg-green-400 text-white text-sm font-black border-2 border-black rounded-lg">Xác Nhận</button>
+              </div>
+            </div>
+          )}
+
+          <header className="bg-sky-300 p-4 border-b-4 border-black flex justify-between items-center sticky top-0 z-10">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-yellow-300 border-[3px] border-black rounded-full flex items-center justify-center font-bold text-xl">🧑‍🌾</div>
+              <div className="font-black text-white text-base" style={{ WebkitTextStroke: '1px black' }}>{user?.username}</div>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <div className={`bg-white px-3 py-1.5 ${cartoonBox} flex flex-col items-end text-yellow-600 font-black text-sm`}>
+                <div className="flex items-center gap-1"><Icon name="coins" size={16} className="fill-yellow-500" /> {formatMoney(balance)}</div>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-3">
+            
+            {/* GIỚI HẠN TÂN THỦ */}
+            {!isAccountActivated() && (
+               <div className="bg-red-100 border-2 border-red-500 p-2 text-red-800 p-2 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
+                  <span>🔒</span>
+                  <span><strong>Tài khoản chưa kích hoạt:</strong> Không thể mua Thú cưng, không thể mua Dưa hấu và không thể rút tiền cho đến khi nạp tiền hoặc nâng Đất lên Cấp 1!</span>
+               </div>
+            )}
+
+            {/* TAB: FARM */}
+            {activeTab === 'farm' && (
+              <div className="space-y-4">
+                <div className={`p-4 bg-amber-100 ${cartoonBox} flex justify-between items-center`}>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-amber-900 text-base flex items-center gap-1.5"><Icon name="sprout" size={18} className="text-green-600" />Khu Đất</h4>
+                    <p className="text-[11px] font-bold text-amber-800">Cấp Đất: <span className="text-amber-950 font-black text-sm">{landLevel}</span> • Thu sau: <span className="font-black">{LAND_UPGRADES[landLevel].harvestTimeHours}H</span></p>
+                    <p className="text-[10px] font-black text-green-700 bg-green-100/70 px-2 py-0.5 rounded border border-green-300 inline-block">Thưởng: +{LAND_UPGRADES[landLevel].bonusPercent}% vàng</p>
+                  </div>
+                  {landLevel < 4 ? (
+                    <button onClick={() => setModal({ show: true, type: 'upgrade_land' })} className="px-2.5 py-1.5 bg-yellow-400 text-[10px] text-black font-black border-2 border-black rounded-xl shadow-[2px_2px_0_0_#000] active:translate-y-0.5">Nâng Cấp<br/>{formatMoney(LAND_UPGRADES[landLevel + 1].cost)}</button>
+                  ) : <span className="text-[10px] font-black text-green-600 bg-green-200 px-2.5 py-1.5 rounded-xl border-2 border-black">TỐI ĐA 🌟</span>}
+                </div>
+                
+                <div className="flex gap-2 justify-between items-center">
+                  <span className="font-black text-white text-lg" style={{ WebkitTextStroke: '0.5px black' }}>Vườn Cây</span>
+                  <div className="flex gap-1.5">
+                    <button onClick={buyWater} className={`py-1.5 px-2.5 bg-blue-300 text-xs ${cartoonBtn} flex items-center gap-1`}><Icon name="droplets" size={14} className="fill-blue-500 text-blue-500" /><span>Tưới (3k)</span></button>
+                    <button onClick={() => setSelectedTool(selectedTool === 'shovel' ? null : 'shovel')} className={`py-1.5 px-2.5 ${selectedTool === 'shovel' ? 'bg-red-400' : 'bg-gray-200'} text-xs ${cartoonBtn} flex items-center gap-1`}><Icon name="shovel" size={14} /><span>Xẻng</span></button>
+                  </div>
+                </div>
+
+                {selectedTool && (
+                  <div className="text-xs text-center font-bold bg-white p-2 rounded-xl border-2 border-black animate-pulse">
+                    Đang dùng: {selectedTool === 'shovel' ? 'Xẻng (Hủy cây hoàn 90%)' : `Gieo hạt ${selectedTool.name}`}
+                    <button onClick={() => setSelectedTool(null)} className="ml-2 text-red-500 underline font-black">Hủy</button>
+                  </div>
+                )}
+
+                <div className={`bg-green-600 p-3 rounded-2xl border-[6px] border-[#654321] relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.3)]`}>
+                  <div className="grid grid-cols-4 gap-2">
+                    {plots.map(plot => (
+                      <div key={plot.id} onClick={() => handlePlotClick(plot)} className={`aspect-square rounded-lg border-[3px] border-black relative flex flex-col items-center justify-center cursor-pointer transition-transform ${!plot.unlocked ? 'bg-green-800/60' : plot.isDry ? 'bg-[#cda272] border-dashed border-opacity-70 grayscale-[20%]' : 'bg-[#a0522d] hover:brightness-110 active:scale-95'} ${plot.watered ? 'brightness-75' : ''}`}>
+                        {!plot.unlocked && <div className="flex flex-col items-center"><Icon name="lock" size={14} className="text-yellow-200" /><span className="text-[10px] text-yellow-200 font-bold mt-1">5k</span></div>}
+                        {plot.unlocked && !plot.plantedSeed && plot.isDry && <span className="text-[10px] font-black text-[#5c3a21] bg-white/60 px-1 rounded z-10 shadow-sm border border-amber-900/20 absolute">Khô</span>}
+                        {plot.plantedSeed && (
+                          <div className="flex flex-col items-center w-full px-1 z-10">
+                            <span className="text-3xl filter drop-shadow-md animate-bounce" style={{animationDuration: '2.5s'}}>{plot.plantedSeed.icon}</span>
+                            <div className="w-full bg-yellow-900 h-2 mt-1 rounded-full border border-black overflow-hidden relative">
+                              <div className={`h-full ${((currentTime - plot.plantTime) >= LAND_UPGRADES[landLevel].harvestTimeHours * 3600000) ? 'bg-green-400 animate-pulse' : 'bg-blue-400'}`} style={{ width: `${Math.min(100, ((currentTime - plot.plantTime) / (LAND_UPGRADES[landLevel].harvestTimeHours * 3600000)) * 100)}%` }} />
+                            </div>
+                            {plot.watered && <div className="absolute top-1 right-1"><Icon name="droplets" size={12} className="text-blue-300 fill-blue-400" /></div>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <h3 className="font-black text-xl text-white mt-6 mb-2" style={{ WebkitTextStroke: '1px black' }}>Khu Chăn Nuôi</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {pens.map(pen => {
+                    const hasIncome = pen.animal && (currentTime - pen.lastCollectTime) >= 3600000;
+                    return (
+                      <div key={pen.id} onClick={() => pen.animal ? setModal({ show: true, type: 'animal_interact', data: pen }) : setActiveTab('shop')} className={`h-24 ${cartoonBox} bg-orange-100 flex items-center justify-center relative cursor-pointer active:scale-95`}>
+                        {!pen.animal ? (
+                          <div className="flex flex-col items-center opacity-60"><Icon name="plusCircle" size={26} className="text-gray-700" /><span className="text-xs font-black mt-1">Chuồng trống</span></div>
+                        ) : (
+                          <><span className="text-5xl drop-shadow-md">{pen.animal.icon}</span>
+                            {hasIncome && <div className="absolute -top-2 -right-2 bg-yellow-400 border-2 border-black rounded-full w-6 h-6 flex items-center justify-center animate-bounce"><Icon name="coins" size={14} className="text-black" /></div>}
+                            <div className="absolute bottom-1 left-2 right-2 h-1.5 bg-gray-300 border border-black rounded-full overflow-hidden"><div className="h-full bg-yellow-400" style={{ width: `${Math.min(100, ((currentTime - pen.lastCollectTime) % 3600000) / 3600000 * 100)}%` }}/></div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: SHOP */}
+            {activeTab === 'shop' && (
+              <div className="space-y-6">
+                <div className={`p-4 bg-white ${cartoonBox}`}>
+                  <h2 className="text-xl font-black border-b-2 border-black pb-2 mb-4 flex items-center gap-2"><Icon name="sprout" /> Hạt Giống</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.values(SEEDS).map(seed => (
+                      <div key={seed.id} className={`p-3 bg-yellow-50 ${cartoonBox} flex flex-col items-center text-center`}><span className="text-4xl mb-2">{seed.icon}</span><span className="font-bold">{seed.name}</span><span className="text-[10px] text-green-600 font-bold">Lãi: {formatMoney(seed.profit)}</span>
+                        <button onClick={() => { setSelectedTool({ type: 'seed', ...seed }); setActiveTab('farm'); }} className={`mt-2 w-full py-1.5 bg-green-400 text-xs ${cartoonBtn}`}>Mua {formatMoney(seed.cost)}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`p-4 bg-white ${cartoonBox}`}>
+                  <h2 className="text-xl font-black border-b-2 border-black pb-2 mb-4 flex items-center gap-2"><Icon name="home" /> Thú Cưng</h2>
+                  <div className="space-y-3">
+                    {Object.values(ANIMALS).map(a => (
+                      <div key={a.id} className={`p-3 bg-orange-50 ${cartoonBox} flex justify-between items-center`}><div className="flex items-center gap-3"><span className="text-4xl">{a.icon}</span><div><div className="font-bold text-sm">{a.name}</div><div className="text-[10px] text-green-600 font-bold">Lãi: +{formatMoney(a.incomePerHour)}/H</div></div></div>
+                        <button onClick={async () => { 
+                          if (!isAccountActivated()) {
+                            return triggerAlert("Bạn không thể dùng vốn khởi nghiệp để mua Thú cưng! Vui lòng thực hiện bất kỳ giao dịch nạp tiền nào được duyệt hoặc nâng cấp đất lên Cấp 1 để kích hoạt tài khoản.", "Tài Khoản Chưa Kích Hoạt 🔒");
+                          }
+                          if (balance < a.cost) return triggerAlert("Không đủ tiền!"); 
+                          const emptyPen = pens.find(p => !p.animal); 
+                          if(!emptyPen) return triggerAlert("Hết chuồng trống!"); 
+                          
+                          const nextPens = pens.map(p => p.id === emptyPen.id ? { ...p, animal: a, buyTime: currentTime, lastCollectTime: currentTime } : p);
+                          await updateFirebaseState({
+                            balance: balance - a.cost,
+                            pens: nextPens
+                          });
+                          triggerAlert(`Đã mua thành công thú cưng ${a.name}`); 
+                        }} className={`px-3 py-1.5 bg-yellow-400 text-xs ${cartoonBtn}`}>{formatMoney(a.cost)}</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: REFERRAL */}
+            {activeTab === 'referral' && (
+              <div className="space-y-4">
+                <div className={`p-5 bg-white ${cartoonBox} text-center`}>
+                  <div className="mx-auto mb-2 text-blue-500 flex justify-center"><Icon name="users" size={48} /></div>
+                  <h2 className="text-2xl font-black mb-1">Giới Thiệu</h2>
+                  <p className="font-bold text-xs text-red-500 mb-2">+15% doanh thu F1 (Điều kiện F1 đất cấp 1). Nhận lúc 00:00.</p>
+                  
+                  <div className="bg-yellow-50 border-2 border-black p-2 rounded-xl mb-3 flex flex-col text-sm">
+                    <span className="font-black text-gray-500 text-[10px]">MÃ CỦA BẠN</span>
+                    <span className="font-black text-xl tracking-widest text-blue-600">{user?.referralCode}</span>
+                  </div>
+
+                  <div className="p-2 bg-gray-100 border-2 border-dashed border-black rounded-xl mb-3 font-mono font-bold text-[11px] break-all">
+                    {window.location.origin}{window.location.pathname}?ref={user?.referralCode}
+                  </div>
+                  <button onClick={() => handleCopy(`${window.location.origin}${window.location.pathname}?ref=${user?.referralCode}`, "link liên kết")} className={`w-full py-2.5 bg-blue-400 text-white text-sm ${cartoonBtn}`}>Sao Chép Link Giới Thiệu</button>
+                </div>
+                
+                <div className={`p-4 bg-white ${cartoonBox}`}>
+                  <h3 className="font-black text-base border-b-2 border-black pb-2 mb-2 flex justify-between">Đội Nhóm <span className="text-blue-600">Tổng: {downlineStats.total}</span></h3>
+                  <div className="grid grid-cols-2 gap-2 text-xs font-bold mt-3">
+                     <div className="bg-gray-100 p-2 rounded border border-black">Đất cấp 0: <span className="text-red-500">{downlineStats[0]}</span></div>
+                     <div className="bg-green-100 p-2 rounded border border-black">Đất cấp 1: <span className="text-green-600">{downlineStats[1]}</span> (Thưởng 20k)</div>
+                     <div className="bg-green-100 p-2 rounded border border-black">Đất cấp 2: <span className="text-green-600">{downlineStats[2]}</span> (Thưởng 50k)</div>
+                     <div className="bg-green-100 p-2 rounded border border-black">Đất cấp 3: <span className="text-green-600">{downlineStats[3]}</span> (Thưởng 70k)</div>
+                     <div className="bg-green-100 p-2 rounded border border-black col-span-2 text-center">Đất cấp 4: <span className="text-green-600">{downlineStats[4]}</span> (Thưởng 100k)</div>
+                  </div>
+                </div>
+
+                <div className={`p-4 bg-yellow-50 ${cartoonBox} flex items-center justify-between`}>
+                  <div>
+                    <h3 className="font-black text-sm text-gray-700">Hoa hồng chờ chốt</h3>
+                    <p className="text-[10px] font-bold text-gray-500">(Cộng vào số dư lúc 00:00)</p>
+                  </div>
+                  <span className="font-black text-xl text-yellow-600">{formatMoney(user?.pendingCommission || 0)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: PROFILE */}
+            {activeTab === 'profile' && (
+              <div className="space-y-4">
+                <div className={`p-6 bg-white ${cartoonBox} text-center`}>
+                  <div className="w-16 h-16 bg-blue-200 border-4 border-black rounded-full mx-auto mb-2 flex items-center justify-center text-3xl">🧑‍🌾</div>
+                  <h2 className="text-2xl font-black">{user?.username}</h2>
+                  
+                  {/* Số Dư */}
+                  <div className="mt-4 p-4 bg-yellow-100 border-[3px] border-black rounded-xl">
+                    <p className="text-xs font-bold text-gray-600">Số dư khả dụng</p>
+                    <p className="text-3xl font-black text-yellow-600">{formatMoney(balance)}</p>
+                  </div>
+
+                  {/* Thống kê Tổng Nạp / Tổng Rút */}
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div className="bg-green-50 border-[3px] border-black rounded-xl py-2 px-1 text-center">
+                      <div className="flex justify-center mb-1 text-green-600"><Icon name="trendingUp" size={16} /></div>
+                      <p className="text-[10px] font-black text-gray-500 mb-0.5">TỔNG NẠP</p>
+                      <p className="text-sm font-black text-green-600">{formatMoney(getTotalStats().totalDeposit)}</p>
+                    </div>
+                    <div className="bg-red-50 border-[3px] border-black rounded-xl py-2 px-1 text-center">
+                      <div className="flex justify-center mb-1 text-red-600"><Icon name="trendingDown" size={16} /></div>
+                      <p className="text-[10px] font-black text-gray-500 mb-0.5">TỔNG RÚT</p>
+                      <p className="text-sm font-black text-red-600">{formatMoney(getTotalStats().totalWithdraw)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={() => setModal({ show: true, type: 'deposit' })} className={`flex-1 py-3 bg-green-400 text-white font-black ${cartoonBtn}`}>Nạp Tiền</button>
+                    <button onClick={() => setModal({ show: true, type: 'withdraw' })} className={`flex-1 py-3 bg-red-400 text-white font-black ${cartoonBtn}`}>Rút Tiền</button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => { setTempBankInfo({ ...bankInfo }); setModal({ show: true, type: 'link_bank' }); }} className={`p-4 bg-white ${cartoonBox} flex flex-col items-center gap-2`}>
+                    <Icon name="landmark" size={28} className="text-blue-500" /><span className="font-black text-sm">Ngân Hàng</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${bankLinked ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}`}>{bankLinked ? 'Đã Liên Kết' : 'Chưa Liên Kết'}</span>
+                  </button>
+                  <button onClick={() => window.open('https://t.me/nongtraivuive_official', '_blank')} className={`p-4 bg-white ${cartoonBox} flex flex-col items-center gap-2`}><Icon name="send" size={28} className="text-blue-500" /><span className="font-black text-sm">Cộng Đồng</span><span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-300">Telegram</span></button>
+                </div>
+
+                <div className={`p-4 bg-white ${cartoonBox}`}>
+                  <h3 className="font-black text-base border-b-2 border-black pb-2 mb-3 flex items-center gap-2"><Icon name="history" /> Lịch Sử Nạp / Rút</h3>
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                    {transactions.length === 0 ? <p className="text-center text-xs font-bold text-gray-500">Chưa có giao dịch nào</p> : 
+                      transactions.map((t, i) => (
+                      <div key={i} className="flex justify-between items-start p-2 border-b-2 border-gray-100 gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${
+                              t.status === 'Thành công' ? 'bg-green-100 text-green-800 border-green-300' : 
+                              t.status === 'Thất bại' ? 'bg-red-100 text-red-800 border-red-300' : 
+                              'bg-yellow-100 text-yellow-800 border-yellow-300'
+                            }`}>
+                              {t.type} ({t.status})
+                            </span>
+                            <p className="text-[10px] text-gray-500">{new Date(t.time).toLocaleString('vi-VN')}</p>
+                          </div>
+                          <p className="font-bold text-[10px] text-gray-700 mt-1">{t.desc}</p>
+                        </div>
+                        <span className={`font-black text-xs shrink-0 ${t.type.includes('Nạp')||t.type.includes('Thưởng')||t.type.includes('Nhận')||t.type.includes('Cộng Tiền') ? 'text-green-600' : 'text-red-600'}`}>
+                          {(t.type.includes('Nạp')||t.type.includes('Thưởng')||t.type.includes('Nhận')||t.type.includes('Cộng Tiền')) ? '+' : '-'}{formatMoney(t.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => { setUser(null); setView('login'); }} className={`w-full p-3 bg-gray-200 text-red-500 flex items-center justify-center gap-2 ${cartoonBtn}`}><Icon name="logOut" /> <span className="font-black">Đăng Xuất</span></button>
+              </div>
+            )}
+
+          </main>
+
+          <nav className="bg-white border-t-4 border-black p-2 flex justify-around items-center pb-safe fixed bottom-0 w-full max-w-md z-30">
+            {[{ id: 'farm', icon: <Icon name="home" />, label: 'Nông Trại' }, { id: 'shop', icon: <Icon name="shoppingCart" />, label: 'Cửa Hàng' }, { id: 'referral', icon: <Icon name="users" />, label: 'Giới Thiệu' }, { id: 'profile', icon: <Icon name="user" />, label: 'Cá Nhân' }].map(item => (
+              <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex flex-col items-center p-2 transition-all ${activeTab === item.id ? 'text-green-600 scale-110 -translate-y-2' : 'text-gray-500'}`}><div className={`${activeTab === item.id ? 'bg-green-100 p-2 rounded-xl border-2 border-black shadow-[2px_2px_0_0_#000]' : ''}`}>{item.icon}</div><span className="text-[10px] font-black mt-1">{item.label}</span></button>
+            ))}
+          </nav>
+
+          {/* MODALS */}
+          {modal.show && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className={`w-full max-w-sm bg-white p-5 ${cartoonBox} animate-bounce-in max-h-[90vh] overflow-y-auto`}>
+                
+                {modal.type === 'unlock_plot' && (
+                  <div className="text-center"><Icon name="unlock" size={48} className="text-yellow-500 mx-auto mb-2" /><h3 className="text-xl font-black mb-2">Mở khóa ô đất?</h3><p className="mb-4 font-medium text-sm">Giá <strong>5,000đ</strong>?</p>
+                    <div className="flex gap-2"><button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button><button onClick={async () => { 
+                      const nextPlots = plots.map(p => p.id === modal.data.id ? { ...p, unlocked: true } : p);
+                      await updateFirebaseState({
+                        balance: balance - PLOT_UNLOCK_COST,
+                        plots: nextPlots
+                      });
+                      setModal({ show: false, type: '', data: null }); 
+                    }} className={`flex-1 py-2 bg-green-400 text-white ${cartoonBtn}`}>Mở khóa</button></div>
+                  </div>
+                )}
+
+                {modal.type === 'shovel_confirm' && (
+                  <div className="text-center"><Icon name="alertCircle" size={48} className="text-red-500 mx-auto mb-2" /><h3 className="text-xl font-black mb-2">Gỡ bỏ cây?</h3><p className="mb-4 font-medium text-sm text-gray-700">Hoàn lại 90% ({(modal.data.plantedSeed.cost * 0.9).toLocaleString()}đ).</p>
+                    <div className="flex gap-2"><button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Không</button><button onClick={async () => { 
+                      const nextPlots = plots.map(p => p.id === modal.data.id ? { ...p, plantedSeed: null, plantTime: null, watered: false, isDry: false } : p);
+                      await updateFirebaseState({
+                        balance: balance + (modal.data.plantedSeed.cost * 0.9),
+                        plots: nextPlots
+                      });
+                      setModal({ show: false, type: '', data: null }); 
+                    }} className={`flex-1 py-2 bg-red-400 text-white ${cartoonBtn}`}>Phá bỏ</button></div>
+                  </div>
+                )}
+
+                {modal.type === 'upgrade_land' && (
+                  <div className="text-center"><h3 className="text-xl font-black mb-2">Nâng cấp đất</h3>
+                    {landLevel < 4 ? (
+                      <><p className="font-bold text-xs text-gray-600 mb-2">Hiện tại: Cấp {landLevel}</p>
+                        <div className="bg-yellow-50 border-2 border-black p-3 rounded-xl text-left mb-4 font-bold text-xs space-y-1"><p>Lên: <span className="text-green-600">Cấp {landLevel + 1}</span></p><p>Giá: <span className="text-blue-600">{formatMoney(LAND_UPGRADES[landLevel+1].cost)}</span></p><p>Thời gian: <span className="text-amber-700">{LAND_UPGRADES[landLevel+1].harvestTimeHours}H</span></p><p>Thưởng: <span className="text-green-600">+{LAND_UPGRADES[landLevel+1].bonusPercent}%</span></p></div>
+                        <div className="flex gap-2"><button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button><button onClick={upgradeLand} className={`flex-1 py-2 bg-yellow-400 ${cartoonBtn}`}>Nâng Cấp</button></div>
+                      </>
+                    ) : <><p className="font-bold text-green-600 mb-4">Đã đạt cấp tối đa!</p><button onClick={() => setModal({ show: false, type: '', data: null })} className={`w-full py-2 bg-gray-200 ${cartoonBtn}`}>Đóng</button></>}
+                  </div>
+                )}
+
+                {modal.type === 'animal_interact' && (
+                  <div className="text-center"><span className="text-6xl">{modal.data.animal.icon}</span><h3 className="text-xl font-black mb-1 mt-2">{modal.data.animal.name}</h3>
+                    <div className="bg-blue-50 border-2 border-black p-3 rounded-xl mb-4 font-bold text-xs text-left space-y-1"><p>Sản xuất: <span className="text-green-600">+{formatMoney(modal.data.animal.incomePerHour)}/H</span></p><p>Đã tích: <span className="text-yellow-600">{formatMoney(Math.floor(((currentTime - modal.data.lastCollectTime) / 3600000) * modal.data.animal.incomePerHour))}</span></p></div>
+                    <div className="flex flex-col gap-2"><button onClick={() => collectAnimalIncome(modal.data)} className={`w-full py-3 bg-green-400 text-white ${cartoonBtn} flex justify-center gap-2`}><Icon name="coins" /> Thu Hoạch</button><button onClick={async () => { 
+                      const nextPens = pens.map(p => p.id === modal.data.id ? { ...p, animal: null, buyTime: null, lastCollectTime: null } : p);
+                      await updateFirebaseState({
+                        balance: balance + (modal.data.animal.cost * 0.85),
+                        pens: nextPens
+                      });
+                      setModal({ show: false, type: '', data: null }); 
+                      triggerAlert("Đã bán thú cưng thành công!"); 
+                    }} className={`w-full py-2 bg-red-400 text-white text-sm ${cartoonBtn}`}>Bán (Thu hồi {formatMoney(modal.data.animal.cost * 0.85)})</button><button onClick={() => setModal({ show: false, type: '', data: null })} className={`w-full py-2 bg-gray-200 ${cartoonBtn}`}>Đóng</button></div>
+                  </div>
+                )}
+
+                {modal.type === 'link_bank' && (
+                  <div><h3 className="text-xl font-black mb-4 text-center">Liên Kết Ngân Hàng</h3>
+                    <div className="space-y-3">
+                      <div><label className="block text-[10px] font-black text-gray-700 mb-1">NGÂN HÀNG</label><select value={tempBankInfo.bankName} onChange={e => setTempBankInfo({ ...tempBankInfo, bankName: e.target.value })} className={`w-full p-2 border-[3px] border-black rounded-xl font-bold bg-white outline-none`}>{VN_BANKS.map(b => <option key={b} value={b}>{b}</option>)}</select></div>
+                      <div><label className="block text-[10px] font-black text-gray-700 mb-1">HỌ TÊN</label><input type="text" value={tempBankInfo.fullName} onChange={e => setTempBankInfo({ ...tempBankInfo, fullName: e.target.value.toUpperCase() })} className={`${cartoonInput} !p-2 uppercase`} /></div>
+                      <div><label className="block text-[10px] font-black text-gray-700 mb-1">SỐ TÀI KHOẢN</label><input type="text" value={tempBankInfo.accNo} onChange={e => setTempBankInfo({ ...tempBankInfo, accNo: e.target.value.replace(/\D/g, '') })} className={`${cartoonInput} !p-2`} /></div>
+                      <div className="flex gap-2 pt-2"><button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button><button onClick={async () => { 
+                        if(!tempBankInfo.fullName || !tempBankInfo.accNo) return triggerAlert("Điền đủ thông tin!"); 
+                        await updateFirebaseState({
+                          bankInfo: tempBankInfo,
+                          bankLinked: true
+                        });
+                        setBankInfo(tempBankInfo);
+                        setBankLinked(true);
+                        setModal({ show: false, type: '', data: null }); 
+                        triggerAlert("Liên kết thành công!"); 
+                      }} className={`flex-1 py-2 bg-green-400 text-white ${cartoonBtn}`}>Xác Nhận</button></div>
+                    </div>
+                  </div>
+                )}
+
+                {modal.type === 'deposit' && (
+                  <div><h3 className="text-xl font-black mb-2 text-center">Nạp Vàng</h3><p className="text-xs font-bold text-center text-gray-500 mb-4">Số dư: {formatMoney(balance)}</p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-700 mb-1">SỐ TIỀN (Min 50k)</label>
+                        <input type="text" pattern="[0-9,]*" value={depositAmount} onChange={e => handleMoneyInputChange(e, setDepositAmount)} className={`${cartoonInput}`} />
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">{[50000, 100000, 200000, 500000, 1000000, 2000000].map(amt => <button key={amt} onClick={() => setDepositAmount(amt.toLocaleString('en-US'))} className="py-1 border-2 border-black rounded-lg text-[10px] font-bold bg-yellow-50 active:bg-yellow-100">{formatMoney(amt)}</button>)}</div>
+                      <div className="flex gap-2 pt-2">
+                        <button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button>
+                        <button onClick={() => { 
+                          let a = parseInt(depositAmount.replace(/,/g, ''));
+                          if(!a || a<50000) return triggerAlert("Tối thiểu 50k!"); 
+                          setModal({ show: true, type: 'deposit_instruction', data: a }); 
+                        }} className={`flex-1 py-2 bg-green-400 text-white ${cartoonBtn}`}>Nạp</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {modal.type === 'deposit_instruction' && (
+                  <div className="space-y-4 text-center">
+                    <h3 className="text-xl font-black">Chuyển Khoản</h3>
+                    <div className="bg-amber-50 border-2 border-black p-3 rounded-xl text-left font-bold text-xs space-y-3">
+                       <div className="flex justify-between items-center">
+                         <span>Bank:</span>
+                         <span className="text-blue-600">BIDV</span>
+                       </div>
+                       <div className="flex justify-between items-center">
+                         <span>STK:</span>
+                         <div className="flex items-center gap-2">
+                           <span className="text-blue-600 select-all">8858806921</span>
+                           <button onClick={() => handleCopy('8858806921', 'Số tài khoản')} className="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-[9px] font-black active:translate-y-0.5 text-gray-700">📋 COPY</button>
+                         </div>
+                       </div>
+                       <div className="flex justify-between items-center">
+                         <span>Tiền:</span>
+                         <div className="flex items-center gap-2">
+                           <span className="text-green-600 font-black">{formatMoney(modal.data)}</span>
+                           <button onClick={() => handleCopy(modal.data.toString(), 'Số tiền')} className="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-[9px] font-black active:translate-y-0.5 text-gray-700">📋 COPY</button>
+                         </div>
+                       </div>
+                       <div className="flex flex-col text-left text-red-600">
+                         <span>Nội dung:</span>
+                         <div className="flex items-center gap-2 mt-1">
+                           <span className="text-red-700 select-all font-mono font-black">NAP {user?.username.toUpperCase()}</span>
+                           <button onClick={() => handleCopy(`NAP ${user?.username.toUpperCase()}`, 'Nội dung')} className="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-[9px] font-black active:translate-y-0.5 text-gray-700">📋 COPY</button>
+                         </div>
+                         <span className="text-[10px] text-gray-500 font-medium mt-1">Sau khi chuyển khoản, vui lòng nhấn xác nhận đã chuyển để Admin xử lý nạp vàng.</span>
+                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button>
+                      <button onClick={() => handleRequestDeposit(modal.data)} className={`flex-1 py-2 bg-green-400 text-white ${cartoonBtn}`}>Xác Nhận Đã Chuyển</button>
+                    </div>
+                  </div>
+                )}
+
+                {modal.type === 'withdraw' && (
+                  <div><h3 className="text-xl font-black mb-2 text-center">Rút Tiền</h3>
+                    <div className="space-y-4">
+                      {landLevel < 1 ? (
+                         <div className="bg-red-50 border-2 border-red-500 p-3 rounded-xl text-xs font-bold text-red-700 text-center">
+                            ⚠️ Bạn bắt buộc phải nâng cấp Đất lên Cấp 1 trở lên mới được phép thực hiện rút tiền!
+                         </div>
+                      ) : (
+                        <>
+                          <div className="bg-blue-50 border-2 border-black p-3 rounded-xl text-xs font-bold space-y-1">
+                            {bankLinked ? <><p>Ngân hàng: {bankInfo.bankName}</p><p>Tên: {bankInfo.fullName}</p><p>STK: {bankInfo.accNo}</p></> : <p className="text-red-500">Chưa liên kết tài khoản ngân hàng!</p>}
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-700 mb-1">SỐ TIỀN RÚT (Min 50k, Phí 5%)</label>
+                            <input type="text" pattern="[0-9,]*" value={withdrawAmount} onChange={e => handleMoneyInputChange(e, setWithdrawAmount)} className={`${cartoonInput}`} />
+                          </div>
+                        </>
+                      )}
+                      <div className="flex gap-2 pt-2">
+                        <button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button>
+                        {landLevel >= 1 && (
+                          <button onClick={() => { 
+                            if(!bankLinked) { setTempBankInfo({...bankInfo}); return setModal({show: true, type: 'link_bank'}); } 
+                            let a = parseInt(withdrawAmount.replace(/,/g, '')); 
+                            if(!a || a<50000) return triggerAlert("Tối thiểu 50k!"); 
+                            if(a>balance) return triggerAlert("Không đủ số dư!"); 
+                            setModal({show: true, type: 'withdraw_confirm', data: {amount: a, fee: Math.floor(a*0.05), realReceive: a-Math.floor(a*0.05)}}); 
+                          }} className={`flex-1 py-2 bg-red-400 text-white ${cartoonBtn}`}>Rút Tiền</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {modal.type === 'withdraw_confirm' && modal.data && (
+                  <div className="text-center"><Icon name="creditCard" size={48} className="text-red-500 mx-auto mb-2" /><h3 className="text-xl font-black mb-2">Xác Nhận Rút Tiền</h3>
+                    <div className="bg-red-50 border-2 border-black p-4 rounded-xl text-left font-bold text-xs space-y-2 mb-4"><p>Số tiền rút: {formatMoney(modal.data.amount)}</p><p>Phí (5%): <span className="text-red-500">{formatMoney(modal.data.fee)}</span></p><hr className="border-black border-dashed"/><p>Thực nhận: <span className="text-green-600 text-base font-black">{formatMoney(modal.data.realReceive)}</span></p></div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setModal({ show: false, type: '', data: null })} className={`flex-1 py-2 bg-gray-200 ${cartoonBtn}`}>Hủy</button>
+                      <button onClick={() => handleRequestWithdraw(modal.data)} className={`flex-1 py-2 bg-red-400 text-white ${cartoonBtn}`}>Xác Nhận Rút</button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+
+  
 </body>
 </html>
