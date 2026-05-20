@@ -32,21 +32,22 @@
     const ADMIN_CREDS = { user: 'admin', pass: 'admin123' };
     const USERS_PER_PAGE = 10;
     
-    // Đọc cấu hình linh hoạt từ môi trường
+    // --- Đồng bộ cấu hình rich-farm-7601d cho Admin App ---
     const defaultFirebaseConfig = {
-      apiKey: "", 
-      authDomain: "nong-trai-vui-ve-d9eb7.firebaseapp.com",
-      projectId: "nong-trai-vui-ve-d9eb7",
-      storageBucket: "nong-trai-vui-ve-d9eb7.firebasestorage.app",
-      messagingSenderId: "609351025584",
-      appId: "1:609351025584:web:e399eb2dc3bb6975a89ca0"
+      apiKey: "AIzaSyCmL4xm17D5Q4qNqr91AeZKsE1k-Mt7Ww0", 
+      authDomain: "rich-farm-7601d.firebaseapp.com",
+      projectId: "rich-farm-7601d",
+      storageBucket: "rich-farm-7601d.firebasestorage.app",
+      messagingSenderId: "801837672034",
+      appId: "1:801837672034:web:19a5044501d75df0e2933b",
+      databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
 
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
       ? JSON.parse(__firebase_config) 
       : defaultFirebaseConfig;
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : "nongtrai_v2";
+    const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
 
     function AdminApp() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -69,7 +70,7 @@
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // Đăng nhập bảo mật thông qua token được nhúng sẵn từ môi trường
+            // Đăng nhập an toàn
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
               await signInWithCustomToken(auth, __initial_auth_token);
             } else {

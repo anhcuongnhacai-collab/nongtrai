@@ -18,7 +18,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght=500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2 family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
 
   <!-- Firebase Web SDK Modules -->
   <script type="module">
@@ -47,22 +47,23 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- Cấu hình Firebase An toàn / Tự động fallback ---
+    // --- Cấu hình Firebase mới đồng bộ từ dự án rich-farm-7601d ---
     const defaultFirebaseConfig = {
-      apiKey: "", // Khởi tạo rỗng, sẽ được thay thế bởi runtime cấu hình của Canvas nếu có
-      authDomain: "nong-trai-vui-ve-d9eb7.firebaseapp.com",
-      projectId: "nong-trai-vui-ve-d9eb7",
-      storageBucket: "nong-trai-vui-ve-d9eb7.firebasestorage.app",
-      messagingSenderId: "609351025584",
-      appId: "1:609351025584:web:e399eb2dc3bb6975a89ca0"
+      apiKey: "AIzaSyCmL4xm17D5Q4qNqr91AeZKsE1k-Mt7Ww0", 
+      authDomain: "rich-farm-7601d.firebaseapp.com",
+      projectId: "rich-farm-7601d",
+      storageBucket: "rich-farm-7601d.firebasestorage.app",
+      messagingSenderId: "801837672034",
+      appId: "1:801837672034:web:19a5044501d75df0e2933b",
+      databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
 
-    // Đọc cấu hình từ môi trường Canvas nếu tồn tại để tránh lỗi auth/invalid-api-key
+    // Đọc cấu hình tự động từ môi trường Canvas nếu tồn tại, nếu không dùng mặc định
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
       ? JSON.parse(__firebase_config) 
       : defaultFirebaseConfig;
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : "nongtrai_v2";
+    const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
 
     // --- CUSTOM SVG ICONS ---
     function Icon({ name, size = 20, className = "" }) {
@@ -167,13 +168,13 @@
           try {
             const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = window.FirebaseLib;
             
-            // Khởi tạo App
+            // Khởi tạo App với cấu hình mới
             const app = initializeApp(firebaseConfig);
             const firestoreDb = getFirestore(app);
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // Tiến hành Xác thực: Ưu tiên Token tùy chỉnh từ môi trường Canvas trước, nếu không có thì đăng nhập ẩn danh
+            // Xác thực: Đăng nhập an toàn
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
               await signInWithCustomToken(auth, __initial_auth_token);
             } else {
@@ -196,7 +197,6 @@
         if (window.FirebaseLib) {
           initFirebase();
         } else {
-          // Thử lại nếu thư viện chưa tải xong
           const checkLib = setInterval(() => {
             if (window.FirebaseLib) {
               initFirebase();
@@ -262,7 +262,6 @@
         if (!db || !user || !firebaseUser || view !== 'game') return;
 
         const { doc, onSnapshot } = window.FirebaseLib;
-        // Đường dẫn chuẩn Firebase Rules theo cấu trúc hệ thống
         const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
 
         const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
@@ -292,7 +291,6 @@
             const now = Date.now();
             setCurrentTime(now);
 
-            // Logic chốt hoa hồng qua 00:00 của hệ thống trực tuyến
             const todayStr = new Date().toLocaleDateString('vi-VN');
             if (user.lastCommissionDate !== todayStr) {
               const { doc, updateDoc } = window.FirebaseLib;
@@ -403,7 +401,7 @@
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists()) return triggerAlert("Tên tài khoản này đã tồn tại!");
 
-          // Chống trùng lặp thiết bị qua hệ thống cấu hình chung
+          // Chống trùng lặp thiết bị
           const systemDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'devices');
           const systemSnap = await getDoc(systemDocRef);
           
@@ -421,7 +419,7 @@
             if (devicesData[localDevId]) {
               firstUserOnDevice = devicesData[localDevId];
               if (firstUserOnDevice !== authData.username) {
-                isBanned = true; // Khóa nếu thiết bị đã đăng ký tài khoản khác trước đó
+                isBanned = true; 
               }
             } else {
               devicesData[localDevId] = authData.username;
@@ -916,7 +914,7 @@
                   <div className="p-2 bg-gray-100 border-2 border-dashed border-black rounded-xl mb-3 font-mono font-bold text-[11px] break-all">
                     {window.location.origin}{window.location.pathname}?ref={user?.referralCode}
                   </div>
-                  <button onClick={() => handleCopy(`${window.location.origin}${window.location.pathname}?ref={user?.referralCode}`, "link liên kết")} className={`w-full py-2.5 bg-blue-400 text-white text-sm ${cartoonBtn}`}>Sao Chép Link Giới Thiệu</button>
+                  <button onClick={() => handleCopy(`${window.location.origin}${window.location.pathname}?ref=${user?.referralCode}`, "link liên kết")} className={`w-full py-2.5 bg-blue-400 text-white text-sm ${cartoonBtn}`}>Sao Chép Link Giới Thiệu</button>
                 </div>
                 
                 <div className={`p-4 bg-white ${cartoonBox}`}>
