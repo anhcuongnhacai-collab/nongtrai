@@ -7,11 +7,10 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth
 const firebaseConfig = {
   apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0",
   authDomain: "rich-farm-7601d.firebaseapp.com",
-  databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "rich-farm-7601d",
   storageBucket: "rich-farm-7601d.firebasestorage.app",
   messagingSenderId: "801837672034",
-  appId: "1:801837672034:web:ce1cf41f953a3d5ee2933b"
+  appId: "1:801837672034:web:de0c93fe22e57579e2933b"
 };
 
 
