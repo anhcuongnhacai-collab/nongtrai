@@ -5,28 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nông Trại Vui Vẻ - Đầu tư & Kiếm Tiền</title>
   
-  <!-- Tailwind CSS CDN -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- React & ReactDOM CDN -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   
-  <!-- Babel Compiler for Browser-side JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
 
-  <!-- Firebase Web SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     
-    // Xuất các hàm ra global window để React trong Babel có thể sử dụng dễ dàng
     window.FirebaseLib = { initializeApp, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence };
   </script>
 
@@ -61,7 +59,6 @@ document.addEventListener('keydown', (e) => {
         return false;
     }
 
-    
     if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
         e.preventDefault();
         return false;
@@ -78,7 +75,6 @@ setInterval(() => {
 }, 100);
    const { useState, useEffect, useRef } = React;
 
-    // --- Cấu hình Firebase mới đồng bộ từ dự án rich-farm-7601d ---
     const defaultFirebaseConfig = {
       apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0", 
       authDomain: "rich-farm-7601d.firebaseapp.com",
@@ -89,14 +85,12 @@ setInterval(() => {
       databaseURL: "https://rich-farm-7601d-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
 
-    // Đọc cấu hình tự động từ môi trường Canvas nếu tồn tại, nếu không dùng mặc định
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
       ? JSON.parse(__firebase_config) 
       : defaultFirebaseConfig;
 
     const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
 
-    // --- CUSTOM SVG ICONS ---
     function Icon({ name, size = 20, className = "" }) {
       const icons = {
         home: <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
@@ -123,7 +117,6 @@ setInterval(() => {
       return icons[name] || null;
     }
 
-    // --- GAME CONFIGURATION ---
     const SEEDS={'rice':{'id':'rice','name':'Lúa','cost':0x1388,'profit':0x1f40,'icon':'🌾'},'carrot':{'id':'carrot','name':'Cà\x20rốt','cost':0x2710,'profit':0x3a98,'icon':'🥕'},'sweet_potato':{'id':'sweet_potato','name':'Khoai\x20lang','cost':0x3a98,'profit':0x5208,'icon':'🍠'},'watermelon':{'id':'watermelon','name':'Dưa\x20hấu','cost':0x4e20,'profit':0x7530,'icon':'🍉'}},ANIMALS={'chicken':{'id':'chicken','name':'Gà','cost':0xc350,'incomePerHour':0xbb8,'icon':'🐔'},'pig':{'id':'pig','name':'Lợn','cost':0x186a0,'incomePerHour':0x1388,'icon':'🐷'},'cow':{'id':'cow','name':'Bò','cost':0x30d40,'incomePerHour':0x2710,'icon':'🐮'}},LAND_UPGRADES=[{'level':0x0,'cost':0x0,'harvestTimeHours':0x18,'bonusPercent':0x0},{'level':0x1,'cost':0x186a0,'harvestTimeHours':0x17,'bonusPercent':0x3},{'level':0x2,'cost':0x30d40,'harvestTimeHours':0x15,'bonusPercent':0x5},{'level':0x3,'cost':0x493e0,'harvestTimeHours':0x13,'bonusPercent':0x8},{'level':0x4,'cost':0x7a120,'harvestTimeHours':0x11,'bonusPercent':0xa}];globalThis['SEEDS']=SEEDS;globalThis['ANIMALS']=ANIMALS;globalThis['LAND_UPGRADES']=LAND_UPGRADES;
     const REF_BONUS = { 1: 20000, 2: 50000, 3: 70000, 4: 100000 };
     const PLOT_UNLOCK_COST = 5000;
@@ -131,13 +124,11 @@ setInterval(() => {
 
     const VN_BANKS = ["Vietcombank", "MBBank", "Techcombank", "BIDV", "Agribank", "VietinBank", "VPBank", "ACB", "TPBank"].sort();
 
-    // --- CSS CLASSES ---
     const cartoonBox = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] bg-white transition-transform duration-150";
     const cartoonBtn = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] font-bold active:translate-y-1 active:translate-x-1 active:shadow-[0_0_0_0_#000] transition-all";
     const cartoonInput = "border-[3px] border-black rounded-xl p-3 w-full outline-none focus:ring-4 focus:ring-yellow-300 font-medium";
 
     function App() {
-      // States
       const [view, setView] = useState('login'); 
       const [activeTab, setActiveTab] = useState('farm');
       const [msgBox, setMsgBox] = useState(null);
@@ -166,7 +157,6 @@ setInterval(() => {
       
       const [downlineStats, setDownlineStats] = useState({ total: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 });
 
-      // Firebase Services Refs
       const [db, setDb] = useState(null);
       const [firebaseUser, setFirebaseUser] = useState(null);
       const [firebaseError, setFirebaseError] = useState(null); 
@@ -174,32 +164,27 @@ setInterval(() => {
       const triggerAlert = (message, title = "Thông Báo 📢") => setMsgBox({ message, title });
       const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
 
-      // --- Khởi tạo Firebase Tối ưu, Sửa lỗi iFrame & Vercel Session ---
       useEffect(() => {
         let unsubscribeAuth;
         const initFirebase = async () => {
           try {
             const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } = window.FirebaseLib;
             
-            // Khởi tạo App và tránh lỗi cấu hình trùng lặp
             let app;
             try {
               app = initializeApp(firebaseConfig);
             } catch (e) {
-              // App đã khởi tạo trước đó
             }
             const firestoreDb = getFirestore(app);
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // THIẾT LẬP CƠ CHẾ PERSISTENCE TRONG BỘ NHỚ TẠM (SỬA LỖI TREO KẾT NỐI TRÊN VERCEL / IFRAME)
             try {
               await setPersistence(auth, browserSessionPersistence);
             } catch (persistError) {
               console.warn("Không thể thiết lập bộ nhớ tạm: ", persistError);
             }
 
-            // Đăng nhập ẩn danh bảo mật
             try {
               if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
@@ -215,7 +200,6 @@ setInterval(() => {
               );
             }
 
-            // Lắng nghe trạng thái đăng nhập liên tục
             unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
               if (authUser) {
                 setFirebaseUser(authUser);
@@ -246,7 +230,6 @@ setInterval(() => {
         };
       }, []);
 
-      // --- Helper copy text ---
       const handleCopy = (text, label) => {
         const el = document.createElement('textarea'); 
         el.value = text; 
@@ -286,7 +269,6 @@ setInterval(() => {
         return { totalDeposit, totalWithdraw };
       };
 
-      // Tự động lấy tham số referral từ URL
       useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get('ref');
@@ -296,7 +278,6 @@ setInterval(() => {
         }
       }, []);
 
-      // --- ĐỒNG BỘ REALTIME TỪ FIREBASE KHI ĐÃ ĐĂNG NHẬP ---
       useEffect(() => {
         if (!db || !user || !user.username || !firebaseUser || view !== 'game') return;
 
@@ -322,7 +303,6 @@ setInterval(() => {
         return () => unsubscribe();
       }, [db, user?.username, firebaseUser, view]);
 
-      // Timer & Chốt hoa hồng định kỳ hàng ngày
       useEffect(() => {
         let timer;
         if (view === 'game' && user && user.username && db && firebaseUser) {
@@ -363,12 +343,10 @@ setInterval(() => {
         return () => { if (timer) clearInterval(timer); };
       }, [view, user, balance, transactions, db, firebaseUser]);
 
-      // Tạo Captcha ngẫu nhiên
       useEffect(() => {
         if (view === 'register') setCaptchaCode(Math.floor(1000 + Math.random() * 9000).toString());
       }, [view]);
 
-      // Thống kê cấp dưới trực tiếp realtime
       useEffect(() => {
         if (activeTab === 'referral' && user && db && firebaseUser) {
           const { collection, onSnapshot } = window.FirebaseLib;
@@ -419,7 +397,9 @@ setInterval(() => {
           if (!authData.username || !authData.password || !authData.phone) return triggerAlert("Vui lòng nhập đầy đủ thông tin!");
         }
 
-        const usernameClean = authData.username.trim();
+        const safeUsername = authData.username.trim().replace(/[<>]/g, '');
+        const usernameClean = safeUsername;
+
         if (!usernameClean) return triggerAlert("Tên tài khoản không hợp lệ!");
 
         const { doc, getDoc, setDoc } = window.FirebaseLib;
@@ -436,7 +416,6 @@ setInterval(() => {
           loadUserData(u);
           setView('game');
         } else {
-          // Register
           if (authData.phone.length !== 10 || !/^\d+$/.test(authData.phone)) return triggerAlert("Số điện thoại phải bao gồm đúng 10 chữ số!");
           if (authData.password !== authData.confirm) return triggerAlert("Mật khẩu nhập lại không trùng khớp!");
           if (authData.captchaInput !== captchaCode) {
@@ -447,7 +426,6 @@ setInterval(() => {
           const docSnap = await getDoc(userDocRef);
           if (docSnap.exists()) return triggerAlert("Tên tài khoản này đã tồn tại!");
 
-          // Chống trùng lặp thiết bị
           const systemDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'devices');
           const systemSnap = await getDoc(systemDocRef);
           
@@ -464,15 +442,15 @@ setInterval(() => {
             devicesData = systemSnap.data() || {};
             if (devicesData[localDevId]) {
               firstUserOnDevice = devicesData[localDevId];
-              if (firstUserOnDevice !== authData.username) {
+              if (firstUserOnDevice !== usernameClean) {
                 isBanned = true; 
               }
             } else {
-              devicesData[localDevId] = authData.username;
+              devicesData[localDevId] = usernameClean;
               await setDoc(systemDocRef, devicesData);
             }
           } else {
-            devicesData[localDevId] = authData.username;
+            devicesData[localDevId] = usernameClean;
             await setDoc(systemDocRef, devicesData);
           }
 
@@ -512,7 +490,8 @@ setInterval(() => {
       const handleForgotPass = async () => {
         if (!db || !firebaseUser) return;
 
-        const usernameClean = forgotData.username ? forgotData.username.trim() : "";
+        const safeUsername = forgotData.username ? forgotData.username.trim().replace(/[<>]/g, '') : "";
+        const usernameClean = safeUsername;
         if (!usernameClean) return triggerAlert("Vui lòng nhập Tên tài khoản!");
 
         const { doc, getDoc, updateDoc } = window.FirebaseLib;
@@ -533,7 +512,6 @@ setInterval(() => {
         }
       };
 
-      // Đồng bộ ví trực tiếp lên Firebase Firestore
       const updateFirebaseState = async (updates) => {
         if (!db || !user || !user.username || !firebaseUser) return;
         const { doc, updateDoc } = window.FirebaseLib;
@@ -688,7 +666,6 @@ setInterval(() => {
             landLevel: nextLevel.level
           });
 
-          // Thưởng realtime cho tuyến trên trực tiếp
           if (user.referrer && db && firebaseUser) {
             const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
             const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
@@ -722,7 +699,6 @@ setInterval(() => {
         } else triggerAlert("Không đủ tiền nâng cấp đất!");
       };
 
-      // SCREENS
       if (view === 'login' || view === 'register') {
         const isLogin = view === 'login';
         return (
@@ -736,7 +712,11 @@ setInterval(() => {
                 </div>
               </div>
             )}
-            <div className="text-center mb-8 animate-bounce">
+            
+            <div className="text-center mb-8 animate-bounce flex flex-col items-center">
+              <div className="w-24 h-24 bg-white rounded-full border-4 border-black flex items-center justify-center text-5xl shadow-[4px_4px_0_0_#000] mb-3">
+                 🚜
+              </div>
               <h1 className="text-4xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,1)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>Nông Trại Vui Vẻ</h1>
               <p className="font-bold text-base text-amber-950 mt-2">Đầu tư & Kiếm Tiền trực tuyến</p>
             </div>
@@ -830,7 +810,6 @@ setInterval(() => {
 
           <main className="flex-1 overflow-y-auto p-3">
             
-            {/* GIỚI HẠN TÂN THỦ */}
             {!isAccountActivated() && (
                <div className="bg-red-100 border-2 border-red-500 p-2 text-red-800 p-2 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
                   <span>🔒</span>
@@ -838,7 +817,6 @@ setInterval(() => {
                </div>
             )}
 
-            {/* TAB: FARM */}
             {activeTab === 'farm' && (
               <div className="space-y-4">
                 <div className={`p-4 bg-amber-100 ${cartoonBox} flex justify-between items-center`}>
@@ -908,7 +886,6 @@ setInterval(() => {
               </div>
             )}
 
-            {/* TAB: SHOP */}
             {activeTab === 'shop' && (
               <div className="space-y-6">
                 <div className={`p-4 bg-white ${cartoonBox}`}>
@@ -948,7 +925,6 @@ setInterval(() => {
               </div>
             )}
 
-            {/* TAB: REFERRAL */}
             {activeTab === 'referral' && (
               <div className="space-y-4">
                 <div className={`p-5 bg-white ${cartoonBox} text-center`}>
@@ -988,20 +964,17 @@ setInterval(() => {
               </div>
             )}
 
-            {/* TAB: PROFILE */}
             {activeTab === 'profile' && (
               <div className="space-y-4">
                 <div className={`p-6 bg-white ${cartoonBox} text-center`}>
                   <div className="w-16 h-16 bg-blue-200 border-4 border-black rounded-full mx-auto mb-2 flex items-center justify-center text-3xl">🧑‍🌾</div>
                   <h2 className="text-2xl font-black">{user?.username}</h2>
                   
-                  {/* Số Dư */}
                   <div className="mt-4 p-4 bg-yellow-100 border-[3px] border-black rounded-xl">
                     <p className="text-xs font-bold text-gray-600">Số dư khả dụng</p>
                     <p className="text-3xl font-black text-yellow-600">{formatMoney(balance)}</p>
                   </div>
 
-                  {/* Thống kê Tổng Nạp / Tổng Rút */}
                   <div className="grid grid-cols-2 gap-2 mt-3">
                     <div className="bg-green-50 border-[3px] border-black rounded-xl py-2 px-1 text-center">
                       <div className="flex justify-center mb-1 text-green-600"><Icon name="trendingUp" size={16} /></div>
@@ -1067,7 +1040,6 @@ setInterval(() => {
             ))}
           </nav>
 
-          {/* MODALS */}
           {modal.show && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
               <div className={`w-full max-w-sm bg-white p-5 ${cartoonBox} animate-bounce-in max-h-[90vh] overflow-y-auto`}>
@@ -1258,6 +1230,5 @@ setInterval(() => {
     root.render(<App />);
 </script>
 
-  
 </body>
 </html>
