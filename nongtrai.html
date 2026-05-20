@@ -18,16 +18,16 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2 family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
 
   <!-- Firebase Web SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     
     // Xuất các hàm ra global window để React trong Babel có thể sử dụng dễ dàng
-    window.FirebaseLib = { initializeApp, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged };
+    window.FirebaseLib = { initializeApp, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence };
   </script>
 
   <style>
@@ -49,7 +49,7 @@
 
     // --- Cấu hình Firebase mới đồng bộ từ dự án rich-farm-7601d ---
     const defaultFirebaseConfig = {
-      apiKey: "AIzaSyCmL4xm17D5Q4qNqr91AeZKsE1k-Mt7Ww0", 
+      apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0", 
       authDomain: "rich-farm-7601d.firebaseapp.com",
       projectId: "rich-farm-7601d",
       storageBucket: "rich-farm-7601d.firebasestorage.app",
@@ -158,37 +158,58 @@
       // Firebase Services Refs
       const [db, setDb] = useState(null);
       const [firebaseUser, setFirebaseUser] = useState(null);
+      const [firebaseError, setFirebaseError] = useState(null); 
 
       const triggerAlert = (message, title = "Thông Báo 📢") => setMsgBox({ message, title });
       const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
 
-      // --- Khởi tạo Firebase ---
+      // --- Khởi tạo Firebase Tối ưu, Sửa lỗi iFrame & Vercel Session ---
       useEffect(() => {
+        let unsubscribeAuth;
         const initFirebase = async () => {
           try {
-            const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = window.FirebaseLib;
+            const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } = window.FirebaseLib;
             
-            // Khởi tạo App với cấu hình mới
-            const app = initializeApp(firebaseConfig);
+            // Khởi tạo App và tránh lỗi cấu hình trùng lặp
+            let app;
+            try {
+              app = initializeApp(firebaseConfig);
+            } catch (e) {
+              // App đã khởi tạo trước đó
+            }
             const firestoreDb = getFirestore(app);
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // Xác thực: Đăng nhập an toàn
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-              await signInAnonymously(auth);
+            // THIẾT LẬP CƠ CHẾ PERSISTENCE TRONG BỘ NHỚ TẠM (SỬA LỖI TREO KẾT NỐI TRÊN VERCEL / IFRAME)
+            try {
+              await setPersistence(auth, browserSessionPersistence);
+            } catch (persistError) {
+              console.warn("Không thể thiết lập bộ nhớ tạm: ", persistError);
             }
 
-            // Lắng nghe trạng thái đăng nhập
-            const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
+            // Đăng nhập ẩn danh bảo mật
+            try {
+              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+              } else {
+                await signInAnonymously(auth);
+              }
+            } catch (authError) {
+              console.error("Lỗi xác thực chi tiết: ", authError);
+              setFirebaseError(authError.code || authError.message);
+              triggerAlert(
+                `Lỗi kết nối Firebase: ${authError.code}. Vui lòng kiểm tra lại cấu hình Authorized Domains trên Firebase Console hoặc kết nối mạng!`, 
+                "Lỗi Kết Nối ⚠️"
+              );
+            }
+
+            // Lắng nghe trạng thái đăng nhập liên tục
+            unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
               if (authUser) {
                 setFirebaseUser(authUser);
               }
             });
-
-            return () => unsubscribeAuth();
           } catch (error) {
             console.error("Lỗi khởi tạo Firebase: ", error);
           }
@@ -203,8 +224,15 @@
               clearInterval(checkLib);
             }
           }, 300);
-          return () => clearInterval(checkLib);
+          return () => {
+            clearInterval(checkLib);
+            if (unsubscribeAuth) unsubscribeAuth();
+          };
         }
+
+        return () => {
+          if (unsubscribeAuth) unsubscribeAuth();
+        };
       }, []);
 
       // --- Helper copy text ---
@@ -259,7 +287,7 @@
 
       // --- ĐỒNG BỘ REALTIME TỪ FIREBASE KHI ĐÃ ĐĂNG NHẬP ---
       useEffect(() => {
-        if (!db || !user || !firebaseUser || view !== 'game') return;
+        if (!db || !user || !user.username || !firebaseUser || view !== 'game') return;
 
         const { doc, onSnapshot } = window.FirebaseLib;
         const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
@@ -286,7 +314,7 @@
       // Timer & Chốt hoa hồng định kỳ hàng ngày
       useEffect(() => {
         let timer;
-        if (view === 'game' && user && db && firebaseUser) {
+        if (view === 'game' && user && user.username && db && firebaseUser) {
           timer = setInterval(async () => {
             const now = Date.now();
             setCurrentTime(now);
@@ -371,14 +399,22 @@
       };
 
       const handleAuth = async (type) => {
-        if (!db || !firebaseUser) return triggerAlert("Hệ thống Database đang kết nối, vui lòng thử lại sau giây lát!");
-
-        const { doc, getDoc, setDoc } = window.FirebaseLib;
-        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', authData.username.trim());
+        if (firebaseError) return triggerAlert(`Lỗi kết nối Firebase: ${firebaseError}. Hãy cấu hình Authorized Domain trên Firebase Console!`, "Lỗi Firebase");
+        if (!db || !firebaseUser) return triggerAlert("Hệ thống đang thiết lập kết nối mã hóa, vui lòng đợi thêm 2-3 giây rồi bấm lại!", "Đang Kết Nối ⏳");
 
         if (type === 'login') {
           if (!authData.username || !authData.password) return triggerAlert("Vui lòng nhập đầy đủ Tên tài khoản và Mật khẩu!");
-          
+        } else {
+          if (!authData.username || !authData.password || !authData.phone) return triggerAlert("Vui lòng nhập đầy đủ thông tin!");
+        }
+
+        const usernameClean = authData.username.trim();
+        if (!usernameClean) return triggerAlert("Tên tài khoản không hợp lệ!");
+
+        const { doc, getDoc, setDoc } = window.FirebaseLib;
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', usernameClean);
+
+        if (type === 'login') {
           const docSnap = await getDoc(userDocRef);
           if (!docSnap.exists()) return triggerAlert("Tài khoản không tồn tại!");
           
@@ -390,7 +426,6 @@
           setView('game');
         } else {
           // Register
-          if (!authData.username || !authData.password || !authData.phone) return triggerAlert("Vui lòng nhập đầy đủ thông tin!");
           if (authData.phone.length !== 10 || !/^\d+$/.test(authData.phone)) return triggerAlert("Số điện thoại phải bao gồm đúng 10 chữ số!");
           if (authData.password !== authData.confirm) return triggerAlert("Mật khẩu nhập lại không trùng khớp!");
           if (authData.captchaInput !== captchaCode) {
@@ -434,7 +469,7 @@
           const defaultPens = Array.from({ length: 4 }, (_, i) => ({ id: i, animal: null, buyTime: null, lastCollectTime: null }));
 
           const newUser = {
-            username: authData.username.trim(),
+            username: usernameClean,
             password: authData.password,
             phone: authData.phone,
             referralCode: `FARM${Math.floor(Math.random() * 90000) + 10000}`,
@@ -465,8 +500,12 @@
 
       const handleForgotPass = async () => {
         if (!db || !firebaseUser) return;
+
+        const usernameClean = forgotData.username ? forgotData.username.trim() : "";
+        if (!usernameClean) return triggerAlert("Vui lòng nhập Tên tài khoản!");
+
         const { doc, getDoc, updateDoc } = window.FirebaseLib;
-        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', forgotData.username.trim());
+        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', usernameClean);
 
         if (forgotData.step === 1) {
           const docSnap = await getDoc(userDocRef);
@@ -485,7 +524,7 @@
 
       // Đồng bộ ví trực tiếp lên Firebase Firestore
       const updateFirebaseState = async (updates) => {
-        if (!db || !user || !firebaseUser) return;
+        if (!db || !user || !user.username || !firebaseUser) return;
         const { doc, updateDoc } = window.FirebaseLib;
         const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
         await updateDoc(userDocRef, updates);
@@ -782,7 +821,7 @@
             
             {/* GIỚI HẠN TÂN THỦ */}
             {!isAccountActivated() && (
-               <div className="bg-red-100 border-2 border-red-500 text-red-800 p-2 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
+               <div className="bg-red-100 border-2 border-red-500 p-2 text-red-800 p-2 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
                   <span>🔒</span>
                   <span><strong>Tài khoản chưa kích hoạt:</strong> Không thể mua Thú cưng, không thể mua Dưa hấu và không thể rút tiền cho đến khi nạp tiền hoặc nâng Đất lên Cấp 1!</span>
                </div>

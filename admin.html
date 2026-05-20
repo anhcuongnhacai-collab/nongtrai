@@ -8,7 +8,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Firebase Web SDK Modules -->
   <script type="module">
@@ -34,7 +34,7 @@
     
     // --- Đồng bộ cấu hình rich-farm-7601d cho Admin App ---
     const defaultFirebaseConfig = {
-      apiKey: "AIzaSyCmL4xm17D5Q4qNqr91AeZKsE1k-Mt7Ww0", 
+      apiKey: "AIzaSyCmL4xml7D5Q4qNqr9lAe2KsE1k-Mt7Ww0", 
       authDomain: "rich-farm-7601d.firebaseapp.com",
       projectId: "rich-farm-7601d",
       storageBucket: "rich-farm-7601d.firebasestorage.app",
@@ -60,17 +60,22 @@
       const [searchUser, setSearchUser] = useState('');
       const [userPage, setUserPage] = useState(1);
 
-      // --- Khởi tạo Firebase ---
+      // --- Khởi tạo Firebase Tối ưu cho Admin ---
       useEffect(() => {
         const initFirebase = async () => {
           try {
             const { initializeApp, getFirestore, getAuth, signInAnonymously, signInWithCustomToken } = window.FirebaseLib;
-            const app = initializeApp(firebaseConfig);
+            let app;
+            try {
+              app = initializeApp(firebaseConfig);
+            } catch (e) {
+              // Đã khởi tạo
+            }
             const firestoreDb = getFirestore(app);
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // Đăng nhập an toàn
+            // Đăng nhập an toàn ẩn danh
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
               await signInWithCustomToken(auth, __initial_auth_token);
             } else {
