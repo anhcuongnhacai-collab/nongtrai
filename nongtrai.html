@@ -22,10 +22,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     
-    window.FirebaseLib = { initializeApp, getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence };
+    window.FirebaseLib = { initializeApp, getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, onSnapshot, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence };
   </script>
 
   <style>
@@ -288,8 +288,8 @@ setInterval(() => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             setUser(data);
-            setBalance(data.balance || 0);
-            setLandLevel(data.landLevel || 0);
+            setBalance(Number(data.balance) || 0);
+            setLandLevel(Number(data.landLevel) || 0);
             setTransactions(data.transactions || []);
             setBankLinked(data.bankLinked || false);
             setBankInfo(data.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
@@ -315,20 +315,21 @@ setInterval(() => {
               const { doc, updateDoc } = window.FirebaseLib;
               const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.username);
 
-              let updatedBalance = balance;
-              let updatedTxs = [...transactions];
+              let updatedBalance = Number(balance) || 0;
+              let updatedTxs = Array.isArray(transactions) ? [...transactions] : [];
 
               if (user.pendingCommission > 0) {
-                updatedBalance += user.pendingCommission;
+                const commissionToPay = Number(user.pendingCommission);
+                updatedBalance += commissionToPay;
                 updatedTxs = [{
                   type: 'Nhận hoa hồng ngày',
-                  amount: user.pendingCommission,
+                  amount: commissionToPay,
                   desc: 'Hoa hồng 15% từ thu nhập của cấp dưới',
                   status: 'Thành công',
                   time: new Date().toISOString()
                 }, ...updatedTxs];
 
-                triggerAlert(`Bạn đã nhận được ${formatMoney(user.pendingCommission)} hoa hồng từ cấp dưới ngày hôm qua!`, "Hoa Hồng Hàng Ngày 💸");
+                triggerAlert(`Bạn đã nhận được ${formatMoney(commissionToPay)} hoa hồng từ cấp dưới ngày hôm qua!`, "Hoa Hồng Hàng Ngày 💸");
               }
 
               await updateDoc(userDocRef, {
@@ -356,7 +357,7 @@ setInterval(() => {
             let downlines = [];
             querySnapshot.forEach((doc) => {
               const uData = doc.data();
-              if (uData.referrer === user.referralCode) {
+              if (user.referralCode && uData.referrer === user.referralCode.trim()) {
                 downlines.push(uData);
               }
             });
@@ -374,9 +375,9 @@ setInterval(() => {
 
       const loadUserData = (userData) => {
         setUser(userData);
-        setBalance(userData.balance || 0);
-        setLandLevel(userData.landLevel || 0);
-        setTransactions(userData.transactions || []);
+        setBalance(Number(userData.balance) || 0);
+        setLandLevel(Number(userData.landLevel) || 0);
+        setTransactions(Array.isArray(userData.transactions) ? userData.transactions : []);
         setBankLinked(userData.bankLinked || false);
         setBankInfo(userData.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
         
@@ -386,7 +387,8 @@ setInterval(() => {
         if (userData.pens && userData.pens.length > 0) setPens(userData.pens);
         else setPens(Array.from({ length: 4 }, (_, i) => ({ id: i, animal: null, buyTime: null, lastCollectTime: null })));
       };
-useEffect(() => {
+
+      useEffect(() => {
         const checkAutoLogin = async () => {
           const savedUser = localStorage.getItem('nongtrai_logged_in_user');
           if (savedUser && db) { 
@@ -414,6 +416,7 @@ useEffect(() => {
 
         checkAutoLogin();
       }, [db]);
+
       const handleAuth = async (type) => {
         if (firebaseError) return triggerAlert(`Lỗi kết nối Firebase: ${firebaseError}. Hãy cấu hình Authorized Domain trên Firebase Console!`, "Lỗi Firebase");
         if (!db || !firebaseUser) return triggerAlert("Hệ thống đang thiết lập kết nối mã hóa, vui lòng đợi thêm 2-3 giây rồi bấm lại!", "Đang Kết Nối ⏳");
@@ -490,7 +493,7 @@ useEffect(() => {
             password: authData.password,
             phone: authData.phone,
             referralCode: `FARM${Math.floor(Math.random() * 90000) + 10000}`,
-            referrer: authData.referralInput || null,
+            referrer: authData.referralInput ? authData.referralInput.trim() : null, // Fix: Loại bỏ khoảng trắng thừa
             isBanned: isBanned,
             balance: 50000,
             landLevel: 0,
@@ -588,27 +591,38 @@ useEffect(() => {
       const processCommission = async (profit) => {
         if (landLevel < 1 || !user.referrer || !db || !firebaseUser) return;
         
-        const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
-        const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-        const querySnap = await getDocs(usersColl);
+        try {
+          const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
+          const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+          const querySnap = await getDocs(usersColl);
 
-        let referrerDocId = null;
-        let referrerData = null;
+          let referrerDocId = null;
+          let referrerData = null;
 
-        querySnap.forEach((docSnap) => {
-          const d = docSnap.data();
-          if (d.referralCode === user.referrer) {
-            referrerDocId = docSnap.id;
-            referrerData = d;
-          }
-        });
+          // Fix: Cắt bỏ khoảng trắng để match chính xác
+          const exactReferrerCode = user.referrer.trim();
 
-        if (referrerDocId && referrerData) {
-          const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
-          const bonusComm = Math.floor(profit * 0.15);
-          await updateDoc(referrerRef, {
-            pendingCommission: (referrerData.pendingCommission || 0) + bonusComm
+          querySnap.forEach((docSnap) => {
+            const d = docSnap.data();
+            if (d.referralCode === exactReferrerCode) {
+              referrerDocId = docSnap.id;
+              referrerData = d;
+            }
           });
+
+          if (referrerDocId && referrerData) {
+            const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
+            
+            // Ép kiểu chắc chắn bằng Number
+            const bonusComm = Math.floor(Number(profit) * 0.15);
+            const currentPending = Number(referrerData.pendingCommission) || 0;
+            
+            await updateDoc(referrerRef, {
+              pendingCommission: currentPending + bonusComm
+            });
+          }
+        } catch(e) {
+          console.error("Lỗi khi xử lý hoa hồng thu hoạch: ", e);
         }
       };
 
@@ -690,39 +704,58 @@ useEffect(() => {
         const nextLevel = LAND_UPGRADES[landLevel + 1];
         if (!nextLevel) return;
         if (balance >= nextLevel.cost) {
+          
           await updateFirebaseState({
             balance: balance - nextLevel.cost,
             landLevel: nextLevel.level
           });
 
+          // Phần Fix Thưởng Nâng Đất Cho Tuyến Trên: Ép kiểu Số thật chặt và xử lý lỗi đồng bộ
           if (user.referrer && db && firebaseUser) {
-            const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
-            const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-            const querySnap = await getDocs(usersColl);
+            try {
+              const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
+              const usersColl = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+              const querySnap = await getDocs(usersColl);
 
-            let referrerDocId = null;
-            let referrerData = null;
+              let referrerDocId = null;
+              let referrerData = null;
 
-            querySnap.forEach((docSnap) => {
-              const d = docSnap.data();
-              if (d.referralCode === user.referrer) {
-                referrerDocId = docSnap.id;
-                referrerData = d;
-              }
-            });
+              const exactReferrerCode = user.referrer.trim();
 
-            if (referrerDocId && referrerData && REF_BONUS[nextLevel.level]) {
-              const b = REF_BONUS[nextLevel.level];
-              const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
-              
-              await updateDoc(referrerRef, {
-                balance: referrerData.balance + b,
-                transactions: [{
-                   type: 'Thưởng giới thiệu', amount: b, desc: `Cấp dưới ${user.username} nâng cấp đất cấp ${nextLevel.level}`, status: 'Thành công', time: new Date().toISOString()
-                }, ...(referrerData.transactions || [])]
+              querySnap.forEach((docSnap) => {
+                const d = docSnap.data();
+                if (d.referralCode === exactReferrerCode) {
+                  referrerDocId = docSnap.id;
+                  referrerData = d;
+                }
               });
+
+              if (referrerDocId && referrerData && REF_BONUS[nextLevel.level]) {
+                const bonusAmount = Number(REF_BONUS[nextLevel.level]);
+                const currentRefBalance = Number(referrerData.balance) || 0;
+                
+                const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
+                const currentRefTx = Array.isArray(referrerData.transactions) ? referrerData.transactions : [];
+
+                const newRefTx = {
+                   id: "REF_LAND_" + Date.now(),
+                   type: 'Thưởng giới thiệu', 
+                   amount: bonusAmount, 
+                   desc: `Cấp dưới ${user.username} nâng cấp đất cấp ${nextLevel.level}`, 
+                   status: 'Thành công', 
+                   time: new Date().toISOString()
+                };
+                
+                await updateDoc(referrerRef, {
+                  balance: currentRefBalance + bonusAmount,
+                  transactions: [newRefTx, ...currentRefTx]
+                });
+              }
+            } catch (error) {
+              console.error("Lỗi khi cộng thưởng hoa hồng nâng đất cho referrer: ", error);
             }
           }
+          
           setModal({ show: false, type: '', data: null });
           triggerAlert(`Đất của bạn đã được nâng cấp lên Cấp ${nextLevel.level}!`, "Nâng Cấp Đất");
         } else triggerAlert("Không đủ tiền nâng cấp đất!");
@@ -744,8 +777,8 @@ useEffect(() => {
             
             <div className="text-center mb-8 animate-bounce flex flex-col items-center">
               <div className="w-24 h-24 bg-white rounded-full border-4 border-black shadow-[4px_4px_0_0_#000] mb-3 overflow-hidden">
-   <img src="nongtrai.jpg" alt="Logo Nông Trại" className="w-full h-full object-cover" />
-</div>
+                <img src="nongtrai.jpg" alt="Logo Nông Trại" className="w-full h-full object-cover" />
+              </div>
               <h1 className="text-4xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,1)] stroke-black" style={{ WebkitTextStroke: '2px black' }}>Nông Trại Vui Vẻ</h1>
               <p className="font-bold text-base text-amber-950 mt-2">Đầu tư & Kiếm Tiền trực tuyến</p>
             </div>
@@ -1058,10 +1091,10 @@ useEffect(() => {
                   </div>
                 </div>
                 <button onClick={() => { 
-  localStorage.removeItem('nongtrai_logged_in_user');
-  setUser(null); 
-  setView('login'); 
-}} className={`w-full p-3 bg-gray-200 text-red-500 flex items-center justify-center gap-2 ${cartoonBtn}`}><Icon name="logOut" /> <span className="font-black">Đăng Xuất</span></button>
+                  localStorage.removeItem('nongtrai_logged_in_user');
+                  setUser(null); 
+                  setView('login'); 
+                }} className={`w-full p-3 bg-gray-200 text-red-500 flex items-center justify-center gap-2 ${cartoonBtn}`}><Icon name="logOut" /> <span className="font-black">Đăng Xuất</span></button>
               </div>
             )}
 
