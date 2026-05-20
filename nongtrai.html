@@ -386,7 +386,34 @@ setInterval(() => {
         if (userData.pens && userData.pens.length > 0) setPens(userData.pens);
         else setPens(Array.from({ length: 4 }, (_, i) => ({ id: i, animal: null, buyTime: null, lastCollectTime: null })));
       };
+useEffect(() => {
+        const checkAutoLogin = async () => {
+          const savedUser = localStorage.getItem('nongtrai_logged_in_user');
+          if (savedUser && db) { 
+            const { doc, getDoc } = window.FirebaseLib;
+            const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', savedUser);
+            
+            try {
+              const docSnap = await getDoc(userDocRef);
+              if (docSnap.exists()) {
+                const u = docSnap.data();
+                if (!u.isBanned) {
+                  loadUserData(u);
+                  setView('game');
+                } else {
+                  localStorage.removeItem('nongtrai_logged_in_user'); 
+                }
+              } else {
+                localStorage.removeItem('nongtrai_logged_in_user');
+              }
+            } catch (error) {
+              console.error("Lỗi tự động đăng nhập:", error);
+            }
+          }
+        };
 
+        checkAutoLogin();
+      }, [db]);
       const handleAuth = async (type) => {
         if (firebaseError) return triggerAlert(`Lỗi kết nối Firebase: ${firebaseError}. Hãy cấu hình Authorized Domain trên Firebase Console!`, "Lỗi Firebase");
         if (!db || !firebaseUser) return triggerAlert("Hệ thống đang thiết lập kết nối mã hóa, vui lòng đợi thêm 2-3 giây rồi bấm lại!", "Đang Kết Nối ⏳");
@@ -414,6 +441,7 @@ setInterval(() => {
           if (u.isBanned) return triggerAlert("Tài khoản này đã bị KHÓA vĩnh viễn do vi phạm chính sách đăng ký nhiều tài khoản trên một thiết bị!", "Tài Khoản Bị Khóa ⛔");
           
           loadUserData(u);
+          localStorage.setItem('nongtrai_logged_in_user', usernameClean);
           setView('game');
         } else {
           if (authData.phone.length !== 10 || !/^\d+$/.test(authData.phone)) return triggerAlert("Số điện thoại phải bao gồm đúng 10 chữ số!");
@@ -482,6 +510,7 @@ setInterval(() => {
           } else {
             triggerAlert("Đăng ký thành công! Bạn nhận được 50,000đ vốn khởi nghiệp.", "Thành Công 🎉");
             loadUserData(newUser);
+            localStorage.setItem('nongtrai_logged_in_user', usernameClean);
             setView('game');
           }
         }
@@ -1028,7 +1057,11 @@ setInterval(() => {
                     ))}
                   </div>
                 </div>
-                <button onClick={() => { setUser(null); setView('login'); }} className={`w-full p-3 bg-gray-200 text-red-500 flex items-center justify-center gap-2 ${cartoonBtn}`}><Icon name="logOut" /> <span className="font-black">Đăng Xuất</span></button>
+                <button onClick={() => { 
+  localStorage.removeItem('nongtrai_logged_in_user');
+  setUser(null); 
+  setView('login'); 
+}} className={`w-full p-3 bg-gray-200 text-red-500 flex items-center justify-center gap-2 ${cartoonBtn}`}><Icon name="logOut" /> <span className="font-black">Đăng Xuất</span></button>
               </div>
             )}
 
