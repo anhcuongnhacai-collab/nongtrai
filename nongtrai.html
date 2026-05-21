@@ -117,12 +117,25 @@ setInterval(() => {
       return icons[name] || null;
     }
 
-    const SEEDS={'rice':{'id':'rice','name':'Lúa','cost':0x1388,'profit':0x1f40,'icon':'🌾'},'carrot':{'id':'carrot','name':'Cà\x20rốt','cost':0x2710,'profit':0x3a98,'icon':'🥕'},'sweet_potato':{'id':'sweet_potato','name':'Khoai\x20lang','cost':0x3a98,'profit':0x5208,'icon':'🍠'},'watermelon':{'id':'watermelon','name':'Dưa\x20hấu','cost':0x4e20,'profit':0x7530,'icon':'🍉'}},ANIMALS={'chicken':{'id':'chicken','name':'Gà','cost':0xc350,'incomePerHour':0xbb8,'icon':'🐔'},'pig':{'id':'pig','name':'Lợn','cost':0x186a0,'incomePerHour':0x1388,'icon':'🐷'},'cow':{'id':'cow','name':'Bò','cost':0x30d40,'incomePerHour':0x2710,'icon':'🐮'}},LAND_UPGRADES=[{'level':0x0,'cost':0x0,'harvestTimeHours':0x18,'bonusPercent':0x0},{'level':0x1,'cost':0x186a0,'harvestTimeHours':0x17,'bonusPercent':0x3},{'level':0x2,'cost':0x30d40,'harvestTimeHours':0x15,'bonusPercent':0x5},{'level':0x3,'cost':0x493e0,'harvestTimeHours':0x13,'bonusPercent':0x8},{'level':0x4,'cost':0x7a120,'harvestTimeHours':0x11,'bonusPercent':0xa}];globalThis['SEEDS']=SEEDS;globalThis['ANIMALS']=ANIMALS;globalThis['LAND_UPGRADES']=LAND_UPGRADES;
+    const SEEDS={'rice':{'id':'rice','name':'Lúa','cost':0x1388,'profit':0x1b58,'icon':'🌾'},'carrot':{'id':'carrot','name':'Cà\x20rốt','cost':0x2710,'profit':0x32c8,'icon':'🥕'},'sweet_potato':{'id':'sweet_potato','name':'Khoai\x20lang','cost':0x3a98,'profit':0x4a38,'icon':'🍠'},'watermelon':{'id':'watermelon','name':'Dưa\x20hấu','cost':0x4e20,'profit':0x61a8,'icon':'🍉'}},ANIMALS={'chicken':{'id':'chicken','name':'Gà','cost':0xc350,'incomePerHour':0x5dc,'icon':'🐔'},'pig':{'id':'pig','name':'Lợn','cost':0x186a0,'incomePerHour':0x7d0,'icon':'🐷'},'cow':{'id':'cow','name':'Bò','cost':0x30d40,'incomePerHour':0xfa0,'icon':'🐮'}},LAND_UPGRADES=[{'level':0x0,'cost':0x0,'harvestTimeHours':0x18,'bonusPercent':0x0},{'level':0x1,'cost':0x186a0,'harvestTimeHours':0x17,'bonusPercent':0x3},{'level':0x2,'cost':0x30d40,'harvestTimeHours':0x15,'bonusPercent':0x5},{'level':0x3,'cost':0x493e0,'harvestTimeHours':0x13,'bonusPercent':0x8},{'level':0x4,'cost':0x7a120,'harvestTimeHours':0x11,'bonusPercent':0xa}];globalThis['SEEDS']=SEEDS;globalThis['ANIMALS']=ANIMALS;globalThis['LAND_UPGRADES']=LAND_UPGRADES;
+
+    globalThis['SEEDS'] = SEEDS;
+    globalThis['ANIMALS'] = ANIMALS;
+    globalThis['LAND_UPGRADES'] = LAND_UPGRADES;
+
     const REF_BONUS = { 1: 20000, 2: 50000, 3: 70000, 4: 100000 };
     const PLOT_UNLOCK_COST = 5000;
     const WATER_BUCKET_COST = 3000;
 
-    const VN_BANKS = ["Vietcombank", "MBBank", "Techcombank", "BIDV", "Agribank", "VietinBank", "VPBank", "ACB", "TPBank"].sort();
+    const VN_BANKS = [
+      "Vietcombank (VCB)", "MBBank (MB)", "Techcombank (TCB)", "BIDV", "VietinBank (CTG)", 
+      "Agribank", "VPBank", "ACB", "TPBank", "Sacombank (STB)", "HDBank", "VIB", "SHB", 
+      "MSB", "SeABank", "OCB", "Eximbank (EIB)", "LPBank (LienVietPostBank)", "NamABank (NAB)", 
+      "BVBank (Viet Capital Bank)", "NCB", "BacABank", "VietBank", "GPBank", "OceanBank", 
+      "PVcomBank", "DongABank", "ABBANK (An Binh Bank)", "BaoVietBank", "Saigonbank", 
+      "KienLongBank", "PGBank", "Shinhan Bank (SHB)", "Woori Bank", "HSBC", "SCB (Saigon Commercial Bank)", 
+      "VietABank", "CBBank", "UOB", "Standard Chartered"
+    ].sort();
 
     const cartoonBox = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] bg-white transition-transform duration-150";
     const cartoonBtn = "border-[3px] border-black rounded-xl shadow-[3px_3px_0_0_#000] font-bold active:translate-y-1 active:translate-x-1 active:shadow-[0_0_0_0_#000] transition-all";
@@ -136,12 +149,12 @@ setInterval(() => {
       const [user, setUser] = useState(null);
       const [balance, setBalance] = useState(0);
       const [bankLinked, setBankLinked] = useState(false);
-      const [bankInfo, setBankInfo] = useState({ bankName: 'Vietcombank', fullName: '', accNo: '' });
+      const [bankInfo, setBankInfo] = useState({ bankName: 'Vietcombank (VCB)', fullName: '', accNo: '' });
       const [transactions, setTransactions] = useState([]);
       
       const [depositAmount, setDepositAmount] = useState('');
       const [withdrawAmount, setWithdrawAmount] = useState('');
-      const [tempBankInfo, setTempBankInfo] = useState({ bankName: 'Vietcombank', fullName: '', accNo: '' });
+      const [tempBankInfo, setTempBankInfo] = useState({ bankName: 'Vietcombank (VCB)', fullName: '', accNo: '' });
 
       const [authData, setAuthData] = useState({ username: '', password: '', confirm: '', phone: '', referralInput: '', captchaInput: '' });
       const [forgotData, setForgotData] = useState({ username: '', phone: '', newPass: '', confirmPass: '', step: 1 });
@@ -292,7 +305,7 @@ setInterval(() => {
             setLandLevel(Number(data.landLevel) || 0);
             setTransactions(data.transactions || []);
             setBankLinked(data.bankLinked || false);
-            setBankInfo(data.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
+            setBankInfo(data.bankInfo || { bankName: 'Vietcombank (VCB)', fullName: '', accNo: '' });
             if (data.plots) setPlots(data.plots);
             if (data.pens) setPens(data.pens);
           }
@@ -308,6 +321,20 @@ setInterval(() => {
         if (view === 'game' && user && user.username && db && firebaseUser) {
           timer = setInterval(async () => {
             const now = Date.now();
+            
+            let updatedSomePlot = false;
+            const updatedPlots = plots.map(p => {
+              if (p.plantedSeed && !p.watered) {
+                updatedSomePlot = true;
+                return { ...p, plantTime: p.plantTime + 1000 };
+              }
+              return p;
+            });
+
+            if (updatedSomePlot) {
+              setPlots(updatedPlots);
+            }
+            
             setCurrentTime(now);
 
             const todayStr = new Date().toLocaleDateString('vi-VN');
@@ -342,7 +369,7 @@ setInterval(() => {
           }, 1000);
         }
         return () => { if (timer) clearInterval(timer); };
-      }, [view, user, balance, transactions, db, firebaseUser]);
+      }, [view, user, balance, transactions, db, firebaseUser, plots]);
 
       useEffect(() => {
         if (view === 'register') setCaptchaCode(Math.floor(1000 + Math.random() * 9000).toString());
@@ -379,7 +406,7 @@ setInterval(() => {
         setLandLevel(Number(userData.landLevel) || 0);
         setTransactions(Array.isArray(userData.transactions) ? userData.transactions : []);
         setBankLinked(userData.bankLinked || false);
-        setBankInfo(userData.bankInfo || { bankName: 'Vietcombank', fullName: '', accNo: '' });
+        setBankInfo(userData.bankInfo || { bankName: 'Vietcombank (VCB)', fullName: '', accNo: '' });
         
         if (userData.plots && userData.plots.length > 0) setPlots(userData.plots);
         else setPlots(Array.from({ length: 20 }, (_, i) => ({ id: i, unlocked: i < 12, plantedSeed: null, plantTime: null, watered: false, isDry: false })));
@@ -493,7 +520,7 @@ setInterval(() => {
             password: authData.password,
             phone: authData.phone,
             referralCode: `FARM${Math.floor(Math.random() * 90000) + 10000}`,
-            referrer: authData.referralInput ? authData.referralInput.trim() : null, // Fix: Loại bỏ khoảng trắng thừa
+            referrer: authData.referralInput ? authData.referralInput.trim() : null,
             isBanned: isBanned,
             balance: 50000,
             landLevel: 0,
@@ -502,7 +529,7 @@ setInterval(() => {
             plots: defaultPlots,
             pens: defaultPens,
             bankLinked: false,
-            bankInfo: { bankName: 'Vietcombank', fullName: '', accNo: '' },
+            bankInfo: { bankName: 'Vietcombank (VCB)', fullName: '', accNo: '' },
             transactions: [{ type: 'Thưởng', amount: 50000, desc: 'Vốn khởi nghiệp tân thủ', status: 'Thành công', time: new Date().toISOString() }]
           };
 
@@ -599,7 +626,6 @@ setInterval(() => {
           let referrerDocId = null;
           let referrerData = null;
 
-          // Fix: Cắt bỏ khoảng trắng để match chính xác
           const exactReferrerCode = user.referrer.trim();
 
           querySnap.forEach((docSnap) => {
@@ -612,8 +638,6 @@ setInterval(() => {
 
           if (referrerDocId && referrerData) {
             const referrerRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', referrerDocId);
-            
-            // Ép kiểu chắc chắn bằng Number
             const bonusComm = Math.floor(Number(profit) * 0.15);
             const currentPending = Number(referrerData.pendingCommission) || 0;
             
@@ -643,15 +667,16 @@ setInterval(() => {
              return triggerAlert("Bạn không thể dùng vốn khởi nghiệp để mua Hạt dưa hấu! Vui lòng thực hiện bất kỳ giao dịch nạp tiền nào được duyệt hoặc nâng đất lên Cấp 1 để kích hoạt tài khoản.", "Tài Khoản Chưa Kích Hoạt 🔒");
           }
 
-          if (plot.isDry) return triggerAlert("Đất đang bị khô cằn! Bạn cần mua xô nước để tưới toàn bộ đất trước.", "Đất Khô 🏜️");
           if (balance >= selectedTool.cost) {
-            const nextPlots = plots.map(p => p.id === plot.id ? { ...p, plantedSeed: selectedTool, plantTime: currentTime, watered: false } : p);
+            const nextPlots = plots.map(p => p.id === plot.id ? { ...p, plantedSeed: selectedTool, plantTime: currentTime, watered: false, isDry: false } : p);
             await updateFirebaseState({
               balance: balance - selectedTool.cost,
               plots: nextPlots
             });
-            setSelectedTool(null);
-          } else triggerAlert("Không đủ tiền mua hạt giống này!");
+            // Giữ nguyên loại hạt giống đang chọn và KHÔNG bật thông báo để người chơi click gieo liên tục nhiều ô cực nhanh
+          } else {
+            triggerAlert("Không đủ tiền mua hạt giống này!");
+          }
           return;
         }
 
@@ -659,6 +684,7 @@ setInterval(() => {
           const requiredTimeMs = LAND_UPGRADES[landLevel].harvestTimeHours * 60 * 60 * 1000;
           if ((currentTime - plot.plantTime) >= requiredTimeMs) {
             const totalProfit = plot.plantedSeed.profit + (plot.plantedSeed.profit * (LAND_UPGRADES[landLevel].bonusPercent / 100));
+            
             const nextPlots = plots.map(p => p.id === plot.id ? { ...p, plantedSeed: null, plantTime: null, watered: false, isDry: true } : p);
             
             await updateFirebaseState({
@@ -666,6 +692,7 @@ setInterval(() => {
               plots: nextPlots
             });
             processCommission(totalProfit); 
+            triggerAlert(`Thu hoạch thành công và thu về ${formatMoney(totalProfit)}! Đất hiện tại đã khô cằn, hãy tưới nước trước khi gieo hạt tiếp theo nhé.`, "Thu Hoạch Thành Công 🎉");
           } else {
             const minutesLeft = Math.max(0, Math.ceil((requiredTimeMs - (currentTime - plot.plantTime)) / 60000));
             triggerAlert(`Cây chưa chín! Còn khoảng ${minutesLeft} phút nữa mới có thể thu hoạch.`);
@@ -696,8 +723,10 @@ setInterval(() => {
             balance: balance - WATER_BUCKET_COST,
             plots: nextPlots
           });
-          triggerAlert("Đã tưới nước mát lành cho TOÀN BỘ trang trại!", "💦 Đã Tưới Nước");
-        } else triggerAlert("Không đủ tiền mua xô nước!");
+          triggerAlert("Đã tưới nước mát lành cho TOÀN BỘ trang trại! Tất cả đất khô đã được làm ẩm và toàn bộ hạt giống đang phát triển khỏe mạnh.", "💦 Đã Tưới Nước");
+        } else {
+          triggerAlert("Không đủ tiền mua xô nước!");
+        }
       };
 
       const upgradeLand = async () => {
@@ -710,7 +739,6 @@ setInterval(() => {
             landLevel: nextLevel.level
           });
 
-          // Phần Fix Thưởng Nâng Đất Cho Tuyến Trên: Ép kiểu Số thật chặt và xử lý lỗi đồng bộ
           if (user.referrer && db && firebaseUser) {
             try {
               const { collection, getDocs, doc, updateDoc } = window.FirebaseLib;
@@ -873,7 +901,7 @@ setInterval(() => {
           <main className="flex-1 overflow-y-auto p-3">
             
             {!isAccountActivated() && (
-               <div className="bg-red-100 border-2 border-red-500 p-2 text-red-800 p-2 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
+               <div className="bg-red-100 border-2 border-red-500 p-2 text-red-800 text-xs font-bold rounded-xl mb-3 flex items-start gap-1">
                   <span>🔒</span>
                   <span><strong>Tài khoản chưa kích hoạt:</strong> Không thể mua Thú cưng, không thể mua Dưa hấu và không thể rút tiền cho đến khi nạp tiền hoặc nâng Đất lên Cấp 1!</span>
                </div>
@@ -912,14 +940,19 @@ setInterval(() => {
                     {plots.map(plot => (
                       <div key={plot.id} onClick={() => handlePlotClick(plot)} className={`aspect-square rounded-lg border-[3px] border-black relative flex flex-col items-center justify-center cursor-pointer transition-transform ${!plot.unlocked ? 'bg-green-800/60' : plot.isDry ? 'bg-[#cda272] border-dashed border-opacity-70 grayscale-[20%]' : 'bg-[#a0522d] hover:brightness-110 active:scale-95'} ${plot.watered ? 'brightness-75' : ''}`}>
                         {!plot.unlocked && <div className="flex flex-col items-center"><Icon name="lock" size={14} className="text-yellow-200" /><span className="text-[10px] text-yellow-200 font-bold mt-1">5k</span></div>}
-                        {plot.unlocked && !plot.plantedSeed && plot.isDry && <span className="text-[10px] font-black text-[#5c3a21] bg-white/60 px-1 rounded z-10 shadow-sm border border-amber-900/20 absolute">Khô</span>}
+                        {plot.unlocked && !plot.plantedSeed && plot.isDry && <span className="text-[10px] font-black text-amber-950 bg-yellow-200/90 px-1 rounded z-10 shadow-sm border border-amber-900/40 absolute">Đất Khô 🏜️</span>}
                         {plot.plantedSeed && (
                           <div className="flex flex-col items-center w-full px-1 z-10">
                             <span className="text-3xl filter drop-shadow-md animate-bounce" style={{animationDuration: '2.5s'}}>{plot.plantedSeed.icon}</span>
                             <div className="w-full bg-yellow-900 h-2 mt-1 rounded-full border border-black overflow-hidden relative">
                               <div className={`h-full ${((currentTime - plot.plantTime) >= LAND_UPGRADES[landLevel].harvestTimeHours * 3600000) ? 'bg-green-400 animate-pulse' : 'bg-blue-400'}`} style={{ width: `${Math.min(100, ((currentTime - plot.plantTime) / (LAND_UPGRADES[landLevel].harvestTimeHours * 3600000)) * 100)}%` }} />
                             </div>
-                            {plot.watered && <div className="absolute top-1 right-1"><Icon name="droplets" size={12} className="text-blue-300 fill-blue-400" /></div>}
+                            
+                            {!plot.watered ? (
+                              <span className="text-[8px] font-black bg-red-500 text-white px-1 rounded mt-1 animate-pulse">Cần Tưới 💦</span>
+                            ) : (
+                              <div className="absolute top-1 right-1"><Icon name="droplets" size={12} className="text-blue-300 fill-blue-400 animate-bounce" /></div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -954,7 +987,7 @@ setInterval(() => {
                   <h2 className="text-xl font-black border-b-2 border-black pb-2 mb-4 flex items-center gap-2"><Icon name="sprout" /> Hạt Giống</h2>
                   <div className="grid grid-cols-2 gap-3">
                     {Object.values(SEEDS).map(seed => (
-                      <div key={seed.id} className={`p-3 bg-yellow-50 ${cartoonBox} flex flex-col items-center text-center`}><span className="text-4xl mb-2">{seed.icon}</span><span className="font-bold">{seed.name}</span><span className="text-[10px] text-green-600 font-bold">Lãi: {formatMoney(seed.profit)}</span>
+                      <div key={seed.id} className={`p-3 bg-yellow-50 ${cartoonBox} flex flex-col items-center text-center`}><span className="text-4xl mb-2">{seed.icon}</span><span className="font-bold">{seed.name}</span><span className="text-[10px] text-green-600 font-bold">Lợi nhuận thu được: {formatMoney(seed.profit)}</span>
                         <button onClick={() => { setSelectedTool({ type: 'seed', ...seed }); setActiveTab('farm'); }} className={`mt-2 w-full py-1.5 bg-green-400 text-xs ${cartoonBtn}`}>Mua {formatMoney(seed.cost)}</button>
                       </div>
                     ))}
@@ -964,7 +997,7 @@ setInterval(() => {
                   <h2 className="text-xl font-black border-b-2 border-black pb-2 mb-4 flex items-center gap-2"><Icon name="home" /> Thú Cưng</h2>
                   <div className="space-y-3">
                     {Object.values(ANIMALS).map(a => (
-                      <div key={a.id} className={`p-3 bg-orange-50 ${cartoonBox} flex justify-between items-center`}><div className="flex items-center gap-3"><span className="text-4xl">{a.icon}</span><div><div className="font-bold text-sm">{a.name}</div><div className="text-[10px] text-green-600 font-bold">Lãi: +{formatMoney(a.incomePerHour)}/H</div></div></div>
+                      <div key={a.id} className={`p-3 bg-orange-50 ${cartoonBox} flex justify-between items-center`}><div className="flex items-center gap-3"><span className="text-4xl">{a.icon}</span><div><div className="font-bold text-sm">{a.name}</div><div className="text-[10px] text-green-600 font-bold">Lợi nhuận thu được: +{formatMoney(a.incomePerHour)}/H</div></div></div>
                         <button onClick={async () => { 
                           if (!isAccountActivated()) {
                             return triggerAlert("Bạn không thể dùng vốn khởi nghiệp để mua Thú cưng! Vui lòng thực hiện bất kỳ giao dịch nạp tiền nào được duyệt hoặc nâng cấp đất lên Cấp 1 để kích hoạt tài khoản.", "Tài Khoản Chưa Kích Hoạt 🔒");
