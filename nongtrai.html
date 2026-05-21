@@ -174,6 +174,34 @@ setInterval(() => {
       const [firebaseUser, setFirebaseUser] = useState(null);
       const [firebaseError, setFirebaseError] = useState(null); 
 
+      
+      const TELEGRAM_BOT_TOKEN = '8722520150:AAGhX1QvqAmWEJPDLnV5dV0EY5VZyYhlG7I';
+      const TELEGRAM_CHAT_ID = '7894014521';
+
+      const sendTelegramAlertToAdmin = (type, amount) => {
+        if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.includes('example')) {
+          console.warn("Vui lòng điền mã TELEGRAM_BOT_TOKEN chính xác để nhận thông báo.");
+          return;
+        }
+        
+        const typeText = type === 'Nạp tiền' ? '🟢 CÓ ĐƠN NẠP TIỀN MỚI' : '🔴 CÓ ĐƠN RÚT TIỀN MỚI';
+        const formattedAmount = parseInt(amount).toLocaleString('vi-VN') + 'đ';
+        
+        const text = `${typeText}\n👤 Tài khoản: ${user?.username}\n📞 Số ĐT: ${user?.phone || 'Không rõ'}\n💰 Số tiền: ${formattedAmount}\n⏰ Thời gian: ${new Date().toLocaleString('vi-VN')}`;
+        
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: text
+          })
+        }).catch(err => console.error("Lỗi khi gửi báo cáo Telegram Bot:", err));
+      };
+      // -------------------------------------------------------------
+
       const triggerAlert = (message, title = "Thông Báo 📢") => setMsgBox({ message, title });
       const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
 
@@ -589,6 +617,10 @@ setInterval(() => {
         };
         const updatedTxs = [newTx, ...transactions];
         await updateFirebaseState({ transactions: updatedTxs });
+        
+        // Gửi báo cáo trực tiếp đến Telegram Admin ngay khi tạo đơn
+        sendTelegramAlertToAdmin('Nạp tiền', amount);
+
         setDepositAmount('');
         setModal({ show: false, type: '', data: null });
         triggerAlert("Lệnh nạp tiền đã được gửi! Vui lòng chờ Admin kiểm tra và duyệt đơn.", "Đang Xử Lý ⏳");
@@ -610,6 +642,10 @@ setInterval(() => {
           balance: balance - data.amount,
           transactions: updatedTxs
         });
+
+        // Gửi báo cáo trực tiếp đến Telegram Admin ngay khi tạo đơn
+        sendTelegramAlertToAdmin('Rút tiền', data.amount);
+
         setWithdrawAmount('');
         setModal({ show: false, type: '', data: null });
         triggerAlert("Yêu cầu rút tiền thành công! Đơn hàng đang ở trạng thái 'Đang xử lý'. Số dư khả dụng của bạn đã tạm trừ.", "Đã Gửi Yêu Cầu ⏳");
