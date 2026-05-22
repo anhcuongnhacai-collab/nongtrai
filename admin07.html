@@ -30,7 +30,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useRef, useMemo } = React;
 
     const ADMIN_CREDS = { user: 'admin', pass: 'admin123' };
     const USERS_PER_PAGE = 10;
@@ -53,20 +53,27 @@
     const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
 
     function AdminApp() {
-      // SỬA: Lấy trạng thái đăng nhập từ localStorage khi khởi động
-      const [isLoggedIn, setIsLoggedIn] = useState(() => {
-        return localStorage.getItem('adminLoggedIn') === 'true';
-      });
+      // States Đăng nhập & Điều hướng
+      const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('adminLoggedIn') === 'true');
       const [loginData, setLoginData] = useState({ user: '', pass: '' });
       const [activeTab, setActiveTab] = useState('dashboard');
+      
+      // States Dữ liệu
       const [db, setDb] = useState(null);
       const [allUsers, setAllUsers] = useState([]);
-      
-      // States cho Quản lý User
       const [searchUser, setSearchUser] = useState('');
       const [userPage, setUserPage] = useState(1);
 
-      // --- Khởi tạo Firebase Tối ưu cho Admin ---
+      // States & Refs cho Thông báo (Web Push Notification)
+      const [notifyPermission, setNotifyPermission] = useState(() => 
+        window.Notification ? window.Notification.permission : 'default'
+      );
+      const knownTxIds = useRef(new Set());
+      const isFirstLoad = useRef(true);
+
+      const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
+
+      // Khởi tạo Firebase
       useEffect(() => {
         const initFirebase = async () => {
           try {
@@ -81,7 +88,6 @@
             const auth = getAuth(app);
             setDb(firestoreDb);
 
-            // Đăng nhập an toàn ẩn danh
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
               await signInWithCustomToken(auth, __initial_auth_token);
             } else {
@@ -125,12 +131,76 @@
         }
       }, [isLoggedIn, db]);
 
-      const formatMoney = (amount) => (amount || 0).toLocaleString('vi-VN') + 'đ';
+      // --- LOGIC GỬI THÔNG BÁO WEB KHI CÓ ĐƠN NẠP/RÚT MỚI ---
+      useEffect(() => {
+        if (!isLoggedIn || allUsers.length === 0) return;
+
+        const currentPending = [];
+        allUsers.forEach(u => {
+          if (u.transactions) {
+            u.transactions.forEach(t => {
+              if (t.status === 'Đang xử lý') {
+                currentPending.push({...t, username: u.username});
+              }
+            });
+          }
+        });
+
+        // Nếu là lần đầu mở web, chỉ ghi nhớ các ID đang chờ, không gửi thông báo
+        if (isFirstLoad.current) {
+          currentPending.forEach(t => knownTxIds.current.add(t.id));
+          isFirstLoad.current = false;
+          return;
+        }
+
+        // Lọc ra các đơn mới xuất hiện
+        let newCount = 0;
+        let lastNewTx = null;
+
+        currentPending.forEach(tx => {
+          if (!knownTxIds.current.has(tx.id)) {
+            knownTxIds.current.add(tx.id);
+            newCount++;
+            lastNewTx = tx;
+          }
+        });
+
+        // Nếu có đơn mới và đã cấp quyền -> Gắn Notification
+        if (newCount > 0 && notifyPermission === 'granted') {
+          const title = 'Nông Trại - Có yêu cầu mới!';
+          const body = newCount === 1
+            ? `Yêu cầu [${lastNewTx.type}] ${formatMoney(lastNewTx.amount)} từ ${lastNewTx.username}`
+            : `Hệ thống vừa nhận thêm ${newCount} yêu cầu nạp/rút mới cần duyệt!`;
+          
+          try {
+            new window.Notification(title, { 
+              body, 
+              icon: 'https://cdn-icons-png.flaticon.com/512/1055/1055666.png'
+            });
+          } catch (error) {
+            console.error("Lỗi gửi Web Notification:", error);
+          }
+        }
+      }, [allUsers, isLoggedIn, notifyPermission]);
+
+      const requestNotification = () => {
+        if (!("Notification" in window)) {
+          alert("Trình duyệt của bạn không hỗ trợ tính năng thông báo web (Notification API).");
+          return;
+        }
+        window.Notification.requestPermission().then(permission => {
+          setNotifyPermission(permission);
+          if (permission === 'granted') {
+            new window.Notification("Bật thông báo thành công!", { 
+              body: "Hệ thống sẽ gửi thông báo mỗi khi có đơn nạp/rút mới." 
+            });
+          }
+        });
+      };
 
       const handleLogin = (e) => {
         e.preventDefault();
         if (loginData.user === ADMIN_CREDS.user && loginData.pass === ADMIN_CREDS.pass) {
-          // SỬA: Lưu trạng thái vào localStorage
           localStorage.setItem('adminLoggedIn', 'true');
           setIsLoggedIn(true);
         } else {
@@ -139,7 +209,6 @@
       };
 
       const handleLogout = () => {
-        // SỬA: Xóa trạng thái khi đăng xuất
         localStorage.removeItem('adminLoggedIn');
         setIsLoggedIn(false);
       };
@@ -250,7 +319,6 @@
         return { totalDeposit, totalWithdraw };
       };
 
-      // Đăng nhập View (Sửa Responsive)
       if (!isLoggedIn) {
         return (
           <div className="min-h-screen flex items-center justify-center p-4">
@@ -276,7 +344,7 @@
         );
       }
 
-      // Extract Data for Views
+      // Tách dữ liệu hiển thị View
       let pendingTxs = [];
       let totalBalance = 0;
       let sysTotalDeposit = 0;
@@ -302,7 +370,6 @@
       const pendingDeposits = pendingTxs.filter(t => t.type === 'Nạp tiền');
       const pendingWithdraws = pendingTxs.filter(t => t.type === 'Rút tiền');
 
-      // Filter & Pagination for Users
       const filteredUsers = allUsers.filter(u => 
         u.username.toLowerCase().includes(searchUser.toLowerCase()) || 
         (u.phone && u.phone.includes(searchUser))
@@ -310,18 +377,22 @@
       const totalUserPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE) || 1;
       const displayedUsers = filteredUsers.slice((userPage - 1) * USERS_PER_PAGE, userPage * USERS_PER_PAGE);
 
-      // SỬA: Bố cục chính flex-col trên mobile, flex-row trên desktop
       return (
         <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
           
-          {/* Sidebar Sửa cho Mobile */}
           <aside className="w-full md:w-64 bg-gray-900 text-white flex flex-col flex-shrink-0 z-10">
             <div className="p-4 md:p-5 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-lg md:text-xl font-bold tracking-wider text-blue-400">ADMIN PANEL</h2>
-              {/* Nút thoát cho mobile */}
-              <button onClick={handleLogout} className="md:hidden text-xs bg-red-600 px-3 py-1.5 rounded text-white font-medium">Thoát</button>
+              
+              {/* Nút bật thông báo & thoát cho mobile */}
+              <div className="flex gap-3 items-center md:hidden">
+                {notifyPermission !== 'granted' && (
+                  <button onClick={requestNotification} className="text-xl" title="Bật thông báo nạp/rút">🔔</button>
+                )}
+                <button onClick={handleLogout} className="text-xs bg-red-600 px-3 py-1.5 rounded text-white font-medium">Thoát</button>
+              </div>
             </div>
-            {/* Menu dạng cuộn ngang trên mobile */}
+
             <nav className="flex flex-row md:flex-col overflow-x-auto hide-scrollbar p-2 md:p-4 gap-2 border-b md:border-b-0 border-gray-800">
               <button onClick={() => setActiveTab('dashboard')} className={`whitespace-nowrap flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg transition text-sm md:text-base ${activeTab==='dashboard' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
                 <span>📊</span> Tổng Quan
@@ -336,19 +407,24 @@
                 <span>👥</span> Thành Viên
               </button>
             </nav>
-            {/* Nút thoát cho desktop */}
-            <div className="hidden md:block p-4 border-t border-gray-800 mt-auto">
-              <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition">Đăng Xuất</button>
+
+            <div className="hidden md:flex flex-col gap-2 p-4 border-t border-gray-800 mt-auto">
+              {/* Nút bật thông báo (Chỉ hiện nếu chưa cấp quyền) */}
+              {notifyPermission !== 'granted' && (
+                <button onClick={requestNotification} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500 hover:text-gray-900 rounded-lg transition text-sm font-medium">
+                  🔔 Bật Thông Báo
+                </button>
+              )}
+              <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition text-sm font-medium">
+                Đăng Xuất
+              </button>
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="flex-1 overflow-y-auto p-4 md:p-8">
-            
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tổng Quan Hệ Thống</h2>
-                {/* Sửa grid responsive */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
                     <p className="text-sm font-medium text-gray-500 mb-1">Tổng Số Thành Viên</p>
@@ -381,7 +457,6 @@
                     <div className="bg-white p-6 text-center rounded-xl border border-gray-200 text-gray-500 text-sm md:text-base">Không có đơn hàng nào đang chờ.</div>
                   ) : (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                      {/* Bọc bảng trong thẻ cho phép cuộn ngang */}
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm min-w-[700px]">
                           <thead className="bg-gray-100 border-b border-gray-200">
@@ -430,7 +505,6 @@
 
             {activeTab === 'users' && (
               <div className="space-y-4">
-                {/* Sửa responsive thanh tìm kiếm */}
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800">Quản Lý Thành Viên</h2>
                   
@@ -447,7 +521,6 @@
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  {/* Bọc bảng user trong thẻ cuộn ngang */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm min-w-[800px]">
                       <thead className="bg-gray-100 border-b border-gray-200">
@@ -533,7 +606,6 @@
                     </table>
                   </div>
                   
-                  {/* Phân Trang (Mobile hiển thị cuộn nếu cần) */}
                   {totalUserPages > 1 && (
                     <div className="bg-gray-50 px-4 py-3 md:px-6 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                       <span className="text-xs md:text-sm text-gray-500">Đang hiện {displayedUsers.length}/{filteredUsers.length}</span>
