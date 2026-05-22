@@ -21,6 +21,9 @@
 
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    /* Ẩn thanh cuộn cho menu trên mobile để nhìn đẹp hơn */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
@@ -50,7 +53,10 @@
     const appId = typeof __app_id !== 'undefined' ? __app_id : "rich_farm_app";
 
     function AdminApp() {
-      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      // SỬA: Lấy trạng thái đăng nhập từ localStorage khi khởi động
+      const [isLoggedIn, setIsLoggedIn] = useState(() => {
+        return localStorage.getItem('adminLoggedIn') === 'true';
+      });
       const [loginData, setLoginData] = useState({ user: '', pass: '' });
       const [activeTab, setActiveTab] = useState('dashboard');
       const [db, setDb] = useState(null);
@@ -124,10 +130,18 @@
       const handleLogin = (e) => {
         e.preventDefault();
         if (loginData.user === ADMIN_CREDS.user && loginData.pass === ADMIN_CREDS.pass) {
+          // SỬA: Lưu trạng thái vào localStorage
+          localStorage.setItem('adminLoggedIn', 'true');
           setIsLoggedIn(true);
         } else {
           alert('Sai tài khoản hoặc mật khẩu quản trị!');
         }
+      };
+
+      const handleLogout = () => {
+        // SỬA: Xóa trạng thái khi đăng xuất
+        localStorage.removeItem('adminLoggedIn');
+        setIsLoggedIn(false);
       };
 
       const handleTxAction = async (username, txId, action) => {
@@ -236,15 +250,15 @@
         return { totalDeposit, totalWithdraw };
       };
 
-      // Đăng nhập View
+      // Đăng nhập View (Sửa Responsive)
       if (!isLoggedIn) {
         return (
-          <div className="min-h-screen flex items-center justify-center">
-            <form onSubmit={handleLogin} className="bg-white p-8 rounded-xl shadow-lg w-96">
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <form onSubmit={handleLogin} className="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-sm">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-white text-3xl">🛡️</div>
                 <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
-                <p className="text-gray-500 text-sm">Hệ thống quản trị Nông Trại Trực Tuyến</p>
+                <p className="text-gray-500 text-sm">Hệ thống quản trị Nông Trại</p>
               </div>
               <div className="space-y-4">
                 <div>
@@ -255,7 +269,7 @@
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
                   <input type="password" value={loginData.pass} onChange={e => setLoginData({...loginData, pass: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
                 </div>
-                <button type="submit" className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Đăng Nhập</button>
+                <button type="submit" className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition mt-2">Đăng Nhập</button>
               </div>
             </form>
           </div>
@@ -296,54 +310,61 @@
       const totalUserPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE) || 1;
       const displayedUsers = filteredUsers.slice((userPage - 1) * USERS_PER_PAGE, userPage * USERS_PER_PAGE);
 
+      // SỬA: Bố cục chính flex-col trên mobile, flex-row trên desktop
       return (
-        <div className="flex h-screen overflow-hidden">
-          {/* Sidebar */}
-          <aside className="w-64 bg-gray-900 text-white flex flex-col">
-            <div className="p-5 border-b border-gray-800 text-center">
-              <h2 className="text-xl font-bold tracking-wider text-blue-400">ADMIN PANEL</h2>
+        <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
+          
+          {/* Sidebar Sửa cho Mobile */}
+          <aside className="w-full md:w-64 bg-gray-900 text-white flex flex-col flex-shrink-0 z-10">
+            <div className="p-4 md:p-5 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg md:text-xl font-bold tracking-wider text-blue-400">ADMIN PANEL</h2>
+              {/* Nút thoát cho mobile */}
+              <button onClick={handleLogout} className="md:hidden text-xs bg-red-600 px-3 py-1.5 rounded text-white font-medium">Thoát</button>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
-              <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab==='dashboard' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
+            {/* Menu dạng cuộn ngang trên mobile */}
+            <nav className="flex flex-row md:flex-col overflow-x-auto hide-scrollbar p-2 md:p-4 gap-2 border-b md:border-b-0 border-gray-800">
+              <button onClick={() => setActiveTab('dashboard')} className={`whitespace-nowrap flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg transition text-sm md:text-base ${activeTab==='dashboard' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
                 <span>📊</span> Tổng Quan
               </button>
-              <button onClick={() => setActiveTab('deposits')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab==='deposits' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
-                <span>📥</span> Duyệt Nạp Tiền {pendingDeposits.length > 0 && <span className="ml-auto bg-red-500 text-xs px-2 py-0.5 rounded-full">{pendingDeposits.length}</span>}
+              <button onClick={() => setActiveTab('deposits')} className={`whitespace-nowrap flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg transition text-sm md:text-base ${activeTab==='deposits' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
+                <span>📥</span> Duyệt Nạp {pendingDeposits.length > 0 && <span className="ml-1 bg-red-500 text-xs px-2 py-0.5 rounded-full">{pendingDeposits.length}</span>}
               </button>
-              <button onClick={() => setActiveTab('withdraws')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab==='withdraws' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
-                <span>📤</span> Duyệt Rút Tiền {pendingWithdraws.length > 0 && <span className="ml-auto bg-red-500 text-xs px-2 py-0.5 rounded-full">{pendingWithdraws.length}</span>}
+              <button onClick={() => setActiveTab('withdraws')} className={`whitespace-nowrap flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg transition text-sm md:text-base ${activeTab==='withdraws' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
+                <span>📤</span> Duyệt Rút {pendingWithdraws.length > 0 && <span className="ml-1 bg-red-500 text-xs px-2 py-0.5 rounded-full">{pendingWithdraws.length}</span>}
               </button>
-              <button onClick={() => {setActiveTab('users'); setUserPage(1);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeTab==='users' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
-                <span>👥</span> Quản Lý Thành Viên
+              <button onClick={() => {setActiveTab('users'); setUserPage(1);}} className={`whitespace-nowrap flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-lg transition text-sm md:text-base ${activeTab==='users' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>
+                <span>👥</span> Thành Viên
               </button>
             </nav>
-            <div className="p-4 border-t border-gray-800">
-              <button onClick={() => setIsLoggedIn(false)} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition">Đăng Xuất</button>
+            {/* Nút thoát cho desktop */}
+            <div className="hidden md:block p-4 border-t border-gray-800 mt-auto">
+              <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-lg transition">Đăng Xuất</button>
             </div>
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-y-auto p-8 bg-gray-50">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8">
             
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800">Tổng Quan Hệ Thống (Trực Tuyến)</h2>
-                <div className="grid grid-cols-4 gap-6">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tổng Quan Hệ Thống</h2>
+                {/* Sửa grid responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
                     <p className="text-sm font-medium text-gray-500 mb-1">Tổng Số Thành Viên</p>
-                    <p className="text-2xl font-bold text-gray-800">{allUsers.length}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-800">{allUsers.length}</p>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-yellow-500">
                     <p className="text-sm font-medium text-gray-500 mb-1">Tổng Tiền Lưu Hành</p>
-                    <p className="text-2xl font-bold text-yellow-600">{formatMoney(totalBalance)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-yellow-600">{formatMoney(totalBalance)}</p>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
                     <p className="text-sm font-medium text-gray-500 mb-1">Tổng Nạp Thành Công</p>
-                    <p className="text-2xl font-bold text-green-600">{formatMoney(sysTotalDeposit)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-green-600">{formatMoney(sysTotalDeposit)}</p>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
                     <p className="text-sm font-medium text-gray-500 mb-1">Tổng Rút Thành Công</p>
-                    <p className="text-2xl font-bold text-red-600">{formatMoney(sysTotalWithdraw)}</p>
+                    <p className="text-xl md:text-2xl font-bold text-red-600">{formatMoney(sysTotalWithdraw)}</p>
                   </div>
                 </div>
               </div>
@@ -351,53 +372,56 @@
 
             {(activeTab === 'deposits' || activeTab === 'withdraws') && (() => {
               const txList = activeTab === 'deposits' ? pendingDeposits : pendingWithdraws;
-              const title = activeTab === 'deposits' ? "Yêu Cầu Nạp Tiền Chờ Duyệt" : "Yêu Cầu Rút Tiền Chờ Duyệt";
+              const title = activeTab === 'deposits' ? "Đơn Nạp Tiền Chờ Duyệt" : "Đơn Rút Tiền Chờ Duyệt";
               
               return (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+                <div className="space-y-4 md:space-y-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800">{title}</h2>
                   {txList.length === 0 ? (
-                    <div className="bg-white p-8 text-center rounded-xl border border-gray-200 text-gray-500">Không có đơn hàng nào đang chờ.</div>
+                    <div className="bg-white p-6 text-center rounded-xl border border-gray-200 text-gray-500 text-sm md:text-base">Không có đơn hàng nào đang chờ.</div>
                   ) : (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-100 border-b border-gray-200">
-                          <tr>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Thời gian</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Tài khoản</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Số Tiền (VND)</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Thông tin chi tiết</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600 text-right">Thao Tác</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {txList.map(tx => (
-                            <tr key={tx.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 text-gray-500">{new Date(tx.time).toLocaleString('vi-VN')}</td>
-                              <td className="px-6 py-4 font-medium text-gray-900">{tx.username}<br/><span className="text-xs text-gray-400">SĐT: {tx.phone}</span></td>
-                              <td className="px-6 py-4 font-bold text-gray-800">
-                                {formatMoney(tx.amount)}
-                                {tx.type === 'Rút tiền' && <div className="text-xs text-red-500 font-normal">Thực nhận: {formatMoney(tx.realReceive)}</div>}
-                              </td>
-                              <td className="px-6 py-4 text-gray-600">
-                                {tx.type === 'Rút tiền' && tx.bankInfo ? (
-                                  <div className="text-xs">
-                                    <span className="font-semibold">{tx.bankInfo.bankName}</span><br/>
-                                    STK: {tx.bankInfo.accNo}<br/>
-                                    Tên: {tx.bankInfo.fullName}
-                                  </div>
-                                ) : (
-                                  <span className="text-xs">Mã Đơn: {tx.id}</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 text-right space-x-2">
-                                <button onClick={() => handleTxAction(tx.username, tx.id, 'approve')} className="px-3 py-1.5 bg-green-500 text-white font-medium rounded hover:bg-green-600 transition shadow-sm">Duyệt</button>
-                                <button onClick={() => handleTxAction(tx.username, tx.id, 'reject')} className="px-3 py-1.5 bg-red-50 text-red-600 font-medium rounded hover:bg-red-100 transition border border-red-200">Từ chối</button>
-                              </td>
+                      {/* Bọc bảng trong thẻ cho phép cuộn ngang */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm min-w-[700px]">
+                          <thead className="bg-gray-100 border-b border-gray-200">
+                            <tr>
+                              <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Thời gian</th>
+                              <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Tài khoản</th>
+                              <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Số Tiền (VND)</th>
+                              <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600">Thông tin chi tiết</th>
+                              <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 text-right whitespace-nowrap">Thao Tác</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {txList.map(tx => (
+                              <tr key={tx.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-gray-500 text-xs md:text-sm">{new Date(tx.time).toLocaleString('vi-VN')}</td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 font-medium text-gray-900">{tx.username}<br/><span className="text-xs text-gray-400">SĐT: {tx.phone}</span></td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 font-bold text-gray-800">
+                                  {formatMoney(tx.amount)}
+                                  {tx.type === 'Rút tiền' && <div className="text-xs text-red-500 font-normal">Thực nhận: {formatMoney(tx.realReceive)}</div>}
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-gray-600">
+                                  {tx.type === 'Rút tiền' && tx.bankInfo ? (
+                                    <div className="text-xs whitespace-nowrap">
+                                      <span className="font-semibold text-sm">{tx.bankInfo.bankName}</span><br/>
+                                      STK: {tx.bankInfo.accNo}<br/>
+                                      Tên: {tx.bankInfo.fullName}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-gray-400 break-all">Mã Đơn: {tx.id}</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-right space-x-2 whitespace-nowrap">
+                                  <button onClick={() => handleTxAction(tx.username, tx.id, 'approve')} className="px-3 py-1.5 bg-green-500 text-white font-medium rounded hover:bg-green-600 transition shadow-sm">Duyệt</button>
+                                  <button onClick={() => handleTxAction(tx.username, tx.id, 'reject')} className="px-3 py-1.5 bg-red-50 text-red-600 font-medium rounded hover:bg-red-100 transition border border-red-200">Từ chối</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -406,123 +430,126 @@
 
             {activeTab === 'users' && (
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-800">Quản Lý Thành Viên</h2>
+                {/* Sửa responsive thanh tìm kiếm */}
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800">Quản Lý Thành Viên</h2>
                   
-                  {/* Tìm Kiếm */}
-                  <div className="relative">
+                  <div className="relative w-full md:w-auto">
                     <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
                     <input 
                       type="text" 
                       placeholder="Tìm User / Số điện thoại..." 
                       value={searchUser}
                       onChange={(e) => {setSearchUser(e.target.value); setUserPage(1);}}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-72 shadow-sm"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full md:w-72 shadow-sm"
                     />
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-100 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-4 font-semibold text-gray-600">Tài khoản</th>
-                        <th className="px-6 py-4 font-semibold text-gray-600">SĐT / Referrer</th>
-                        <th className="px-6 py-4 font-semibold text-gray-600">Tài sản (Số dư & Đất)</th>
-                        <th className="px-6 py-4 font-semibold text-gray-600 text-center">Thống Kê Nạp/Rút</th>
-                        <th className="px-6 py-4 font-semibold text-gray-600">Trạng thái</th>
-                        <th className="px-6 py-4 font-semibold text-gray-600 text-right">Thao Tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {displayedUsers.length === 0 ? (
-                        <tr><td colSpan="6" className="text-center py-8 text-gray-500">Không tìm thấy thành viên nào.</td></tr>
-                      ) : (
-                        displayedUsers.map(u => {
-                          const stats = getUserStats(u.transactions);
-                          const f1Count = allUsers.filter(x => x.referrer === u.referralCode).length;
+                  {/* Bọc bảng user trong thẻ cuộn ngang */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-[800px]">
+                      <thead className="bg-gray-100 border-b border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Tài khoản</th>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">SĐT / Referrer</th>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Tài sản (Dư & Đất)</th>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Thống Kê Nạp/Rút</th>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 whitespace-nowrap">Trạng thái</th>
+                          <th className="px-4 py-3 md:px-6 md:py-4 font-semibold text-gray-600 text-right whitespace-nowrap">Thao Tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {displayedUsers.length === 0 ? (
+                          <tr><td colSpan="6" className="text-center py-8 text-gray-500">Không tìm thấy thành viên nào.</td></tr>
+                        ) : (
+                          displayedUsers.map(u => {
+                            const stats = getUserStats(u.transactions);
+                            const f1Count = allUsers.filter(x => x.referrer === u.referralCode).length;
 
-                          return (
-                            <tr key={u.username} className="hover:bg-gray-50">
-                              <td className="px-6 py-4">
-                                <div className="font-bold text-gray-900 text-base">{u.username}</div>
-                                <div className="text-xs text-gray-400">Mã GT: {u.referralCode}</div>
-                              </td>
-                              <td className="px-6 py-4 text-xs text-gray-600">
-                                SĐT: <span className="font-medium text-gray-800">{u.phone}</span><br/>
-                                Tuyến trên: {u.referrer || <span className="text-gray-400 italic">Không có</span>}<br/>
-                                <span className="font-bold text-blue-600 mt-1 inline-block">Đã mời: {f1Count} F1</span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="font-bold text-yellow-600 text-base">{formatMoney(u.balance || 0)}</div>
-                                <div className="text-xs text-green-700 bg-green-50 inline-block px-2 py-0.5 rounded border border-green-200 mt-1">Đất cấp: {u.landLevel}</div>
-                              </td>
-                              <td className="px-6 py-4 text-xs">
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-gray-500">Tổng nạp:</span>
-                                  <span className="font-bold text-green-600">{formatMoney(stats.totalDeposit)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-gray-500">Tổng rút:</span>
-                                  <span className="font-bold text-red-600">{formatMoney(stats.totalWithdraw)}</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${u.isBanned ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
-                                  {u.isBanned ? 'Bị Khóa' : 'Hoạt Động'}
-                               </span>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <div className="flex flex-col items-end gap-1.5">
-                                    <div className="flex gap-1">
-                                        <button 
-                                          onClick={() => handleAddFunds(u.username)} 
-                                          className="px-2.5 py-1 font-medium rounded transition text-xs bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200"
-                                        >
-                                          Cộng Tiền
-                                        </button>
-                                        <button 
-                                          onClick={() => handleBanUser(u.username, u.isBanned)} 
-                                          className={`px-2.5 py-1 font-medium rounded transition text-xs border ${u.isBanned ? 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
-                                        >
-                                          {u.isBanned ? 'Mở Khóa' : 'Khóa Acc'}
-                                        </button>
-                                    </div>
-                                    
-                                    {u.isBanned && (
-                                        <button 
-                                          onClick={() => handleDeleteUser(u.username)} 
-                                          className="px-2.5 py-1 w-full font-medium rounded transition text-xs bg-red-600 text-white border border-red-700 hover:bg-red-700"
-                                        >
-                                          Xóa Vĩnh Viễn
-                                        </button>
-                                    )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                            return (
+                              <tr key={u.username} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                                  <div className="font-bold text-gray-900 text-base">{u.username}</div>
+                                  <div className="text-xs text-gray-400">Mã GT: {u.referralCode}</div>
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-xs text-gray-600 whitespace-nowrap">
+                                  SĐT: <span className="font-medium text-gray-800">{u.phone}</span><br/>
+                                  Tuyến trên: {u.referrer || <span className="text-gray-400 italic">Không có</span>}<br/>
+                                  <span className="font-bold text-blue-600 mt-1 inline-block">Đã mời: {f1Count} F1</span>
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                                  <div className="font-bold text-yellow-600 text-base">{formatMoney(u.balance || 0)}</div>
+                                  <div className="text-xs text-green-700 bg-green-50 inline-block px-2 py-0.5 rounded border border-green-200 mt-1">Đất cấp: {u.landLevel}</div>
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-xs min-w-[150px]">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-gray-500">Tổng nạp:</span>
+                                    <span className="font-bold text-green-600">{formatMoney(stats.totalDeposit)}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-500">Tổng rút:</span>
+                                    <span className="font-bold text-red-600">{formatMoney(stats.totalWithdraw)}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${u.isBanned ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
+                                    {u.isBanned ? 'Bị Khóa' : 'Hoạt Động'}
+                                 </span>
+                                </td>
+                                <td className="px-4 py-3 md:px-6 md:py-4 text-right">
+                                  <div className="flex flex-col items-end gap-1.5">
+                                      <div className="flex gap-1">
+                                          <button 
+                                            onClick={() => handleAddFunds(u.username)} 
+                                            className="px-2.5 py-1 font-medium rounded transition text-xs bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 whitespace-nowrap"
+                                          >
+                                            Cộng Tiền
+                                          </button>
+                                          <button 
+                                            onClick={() => handleBanUser(u.username, u.isBanned)} 
+                                            className={`px-2.5 py-1 font-medium rounded transition text-xs border whitespace-nowrap ${u.isBanned ? 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+                                          >
+                                            {u.isBanned ? 'Mở Khóa' : 'Khóa Acc'}
+                                          </button>
+                                      </div>
+                                      
+                                      {u.isBanned && (
+                                          <button 
+                                            onClick={() => handleDeleteUser(u.username)} 
+                                            className="px-2.5 py-1 w-full font-medium rounded transition text-xs bg-red-600 text-white border border-red-700 hover:bg-red-700 whitespace-nowrap"
+                                          >
+                                            Xóa Vĩnh Viễn
+                                          </button>
+                                      )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                   
-                  {/* Phân Trang */}
+                  {/* Phân Trang (Mobile hiển thị cuộn nếu cần) */}
                   {totalUserPages > 1 && (
-                    <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Hiển thị {displayedUsers.length} trên tổng {filteredUsers.length} user</span>
+                    <div className="bg-gray-50 px-4 py-3 md:px-6 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <span className="text-xs md:text-sm text-gray-500">Đang hiện {displayedUsers.length}/{filteredUsers.length}</span>
                       <div className="flex items-center gap-2">
                         <button 
                           disabled={userPage === 1} 
                           onClick={() => setUserPage(p => p - 1)}
-                          className="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                          className="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                         >
                           Trang trước
                         </button>
-                        <span className="text-sm font-medium text-gray-700">Trang {userPage} / {totalUserPages}</span>
+                        <span className="text-sm font-medium text-gray-700 px-2">{userPage} / {totalUserPages}</span>
                         <button 
                           disabled={userPage === totalUserPages} 
                           onClick={() => setUserPage(p => p + 1)}
-                          className="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                          className="px-3 py-1 border border-gray-300 rounded bg-white text-gray-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                         >
                           Trang sau
                         </button>
